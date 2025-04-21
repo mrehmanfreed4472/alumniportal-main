@@ -234,7 +234,7 @@ export default function AlumniMemories() {
       <Navbar2 />
       <div className="flex flex-col min-h-screen bg-gray-50">
         <div className="container mx-auto p-4 max-w-3xl">
-          <h1 className="text-4xl font-bold mb-6 text-center text-blue-700">Alumni Memories</h1>
+          <h1 className="text-4xl font-bold mb-6 text-center text-[#A51C30]">Alumni Memories</h1>
 
           <Card className="mb-8">
             <CardContent className="p-4">
@@ -265,7 +265,7 @@ export default function AlumniMemories() {
                   <ImageIcon className="h-4 w-4 text-blue-700" />
                 </Button>
                 {previewUrl && <img src={previewUrl} alt="Preview" style={{ width: "70px" }} />}
-                <Button className="bg-blue-600 hover:bg-blue-600/80" onClick={postNewMemory} disabled={isPosting}>
+                <Button className="bg-[#A51C30] hover:bg-[#D43F56]" onClick={postNewMemory} disabled={isPosting}>
                   {
                     isPosting === false ? (
                       <>

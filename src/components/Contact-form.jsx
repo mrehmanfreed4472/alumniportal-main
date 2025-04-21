@@ -47,7 +47,7 @@ export default function FeedbackForm() {
   return (
     <Dialog  onOpenChange={setIsOpen}>
      
-      <Link href={'/contact'}><Button size="lg"  className="w-full bg-blue-600 hover:bg-blue-600/80">Share Feedback</Button></Link>
+      <Link href={'/contact'}><Button size="lg"  className="w-full bg-[#A51C30] hover:bg-blue-[#a35560]">Share Feedback</Button></Link>
         
       
       <DialogContent className="sm:max-w-[425px]">

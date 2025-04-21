@@ -31,7 +31,7 @@ export default function Navbar() {
    return (
     <div className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 md:block hidden" >
     <header className="">
-        <div className="max-w-[2200px] mx-auto flex h-16 items-center justify-between">
+        <div className="max-w-[2200px] mx-auto flex h-16 items-center justify-between px-5">
           <Link href="/" className="flex items-center space-x-2">
           <Image src="/image/ntu-logo.png" alt="NTU Logo" width={35} height={35} priority />
             <span className="font-bold text-2xl text-black">NTU AMS</span>
@@ -54,7 +54,7 @@ export default function Navbar() {
           <div className="mx-1"><Button onClick={handleCollegeRegistration} className="hidden md:inline-flex" variant="outline" size="lg">
             College Registration
           </Button>
-            <Button onClick={handleLogin} className="hidden md:inline-flex mx-2" size="lg">
+            <Button onClick={handleLogin} className="hidden md:inline-flex mx-  bg-[#A51C30]" size="lg">
               Login
             </Button></div>
 
@@ -98,7 +98,7 @@ export default function Navbar() {
                     </Button>
                   </SheetClose>
                   <SheetClose asChild>
-                    <Button size="lg" className="w-full mt-1" onClick={() => { toggleMenu; handleLogin() }}>Login</Button>
+                    <Button size="lg" className="w-full mt-1  bg-[#A51C30]" onClick={() => { toggleMenu; handleLogin() }}>Login</Button>
                   </SheetClose>
                 </div>
               </div>

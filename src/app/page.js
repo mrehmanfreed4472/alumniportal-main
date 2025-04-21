@@ -110,9 +110,9 @@ export default function Component() {
           const sectionId = section.getAttribute("id")
 
           if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
-            document.querySelector(`nav a[href="#${sectionId}"]`)?.classList.add("text-blue-600")
+            document.querySelector(`nav a[href="#${sectionId}"]`)?.classList.add("text-[#A51C30]")
           } else {
-            document.querySelector(`nav a[href="#${sectionId}"]`)?.classList.remove("text-blue-600")
+            document.querySelector(`nav a[href="#${sectionId}"]`)?.classList.remove("text-[#A51C30]")
           }
         }
       })
@@ -127,7 +127,13 @@ export default function Component() {
     {userData ? (<Navbar2></Navbar2>):( <NavForSlash />)}
    
       <main className="container mx-auto flex-1">
-        <section className="w-full py-12 md:py-24 lg:py-32 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+        <section style={{
+            backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(/image/default_bg.jpeg)`,
+            backgroundSize: "cover",
+            backgroundPosition: 'top',
+            backgroundRepeat: "no-repeat",
+            backgroundBlendMode: "multiply"
+          }} className="w-full py-12 md:py-24 lg:py-32 bg-gradient-to-r from-[#A51C30] to-[#D43F56] text-white">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center space-y-4 text-center">
               <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none">
@@ -142,13 +148,13 @@ export default function Component() {
              
              <Button
                onClick={() => { router.push('/registration'); }}
-               className="bg-white text-blue-600 hover:bg-zinc-100 text-sm lg:text-lg px-4 lg:px-6 py-2 lg:py-3"
+               className="bg-white text-[#A51C30] hover:bg-zinc-100 text-sm lg:text-lg px-4 lg:px-6 py-2 lg:py-3"
              >
                Join Now
              </Button>
              <Button
                onClick={handleLogin}
-               className="bg-white text-blue-600 hover:bg-zinc-100 mx-2 text-sm lg:text-lg px-4 lg:px-6 py-2 lg:py-3"
+               className="bg-white text-[#A51C30] hover:bg-zinc-100 mx-2 text-sm lg:text-lg px-4 lg:px-6 py-2 lg:py-3"
              >
                Login
              </Button>
@@ -163,28 +169,28 @@ export default function Component() {
         <section id="about" className="w-full py-7 md:py-12 lg:py-16">
           <div className="container px-4 md:px-6">
             <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-center mb-8">
-          <Link href="/about"><span className="text-blue-600"> About </span>
+          <Link href="/about"><span className="text-[#A51C30]"> About </span>
             </Link>  
                AMS
             </h2>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
               <FeatureCard
-                icon={<Users className="h-10 w-10 text-blue-600" />}
+                icon={<Users className="h-10 w-10 text-[#A51C30]" />}
                 title="Network Expansion"
                 description="Connect with a diverse community of professionals across various industries."
               />
               <FeatureCard
-                icon={<BookOpen className="h-10 w-10 text-blue-600" />}
+                icon={<BookOpen className="h-10 w-10 text-[#A51C30]" />}
                 title="Lifelong Learning"
                 description="Access exclusive webinars, workshops, and resources for continuous growth."
               />
               <FeatureCard
-                icon={<Globe className="h-10 w-10 text-blue-600" />}
+                icon={<Globe className="h-10 w-10 text-[#A51C30]" />}
                 title="Global Opportunities"
                 description="Explore international job postings and collaboration possibilities."
               />
               <FeatureCard
-                icon={<Award className="h-10 w-10 text-blue-600" />}
+                icon={<Award className="h-10 w-10 text-[#A51C30]" />}
                 title="Alumni Recognition"
                 description="Celebrate achievements and contributions of our distinguished alumni."
               />
@@ -263,17 +269,17 @@ export default function Component() {
             </h2>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               <InvolvementCard
-                icon={<VoteIcon className="h-10 w-10 text-blue-600" />}
+                icon={<VoteIcon className="h-10 w-10 text-[#A51C30]" />}
                 title="Volunteer"
                 description="Help organize events, mentor students, or serve on a committee."
               />
               <InvolvementCard
-                icon={<GiftIcon className="h-10 w-10 text-blue-600" />}
+                icon={<GiftIcon className="h-10 w-10 text-[#A51C30]" />}
                 title="Donate"
                 description="Support scholarships, programs, and initiatives that benefit our alumni community."
               />
               <InvolvementCard
-                icon={<BadgeIcon className="h-10 w-10 text-blue-600" />}
+                icon={<BadgeIcon className="h-10 w-10 text-[#A51C30]" />}
                 title="Mentor"
                 description="Share your expertise and experience with current students and recent graduates."
               />

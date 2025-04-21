@@ -39,7 +39,7 @@ export default function ReviewCollector() {
     <div className="min-h-[90vh] bg-white">
         {userData ? (<Navbar2></Navbar2>):( <NavForSlash />)}
       {/* Hero Section */}
-      <div className="w-full bg-gradient-to-br from-blue-600 to-indigo-600 py-16 text-center text-white">
+      <div className="w-full bg-gradient-to-br from-[#A51C30] to-[#C24C5E] py-16 text-center text-white">
         <h1 className="text-4xl font-bold md:text-5xl">Share Your Experience</h1>
         <p className="mt-4 text-lg text-white/90">
           Help us improve AMS by providing your valuable feedback
@@ -113,7 +113,7 @@ export default function ReviewCollector() {
                   />
                 </div>
 
-                <Button type="submit" className="w-full">
+                <Button type="submit" className="w-full bg-gradient-to-br from-[#A51C30] to-[#C24C5E]">
                   Submit Review
                 </Button>
               </form>

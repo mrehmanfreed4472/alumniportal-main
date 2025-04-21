@@ -13,6 +13,7 @@ import axios from 'axios'
 import { useToast } from "@/hooks/use-toast"
 import { Trash2, ThumbsUp, MessageCircle } from "lucide-react"
 import { formatDistanceToNow } from 'date-fns'
+import { useSelector } from "react-redux"
 
 export default function PostsAndMemoriesTabs() {
   const { toast } = useToast()
@@ -21,19 +22,21 @@ export default function PostsAndMemoriesTabs() {
   const [posts, setPosts] = useState([])
   const [memories, setMemories] = useState([])
   const [currUser, setCurrUser] = useState('');
+  const userData = useSelector  ((state) => state?.userInfo?.userData);
+  console.log("🚀 ~ PostsAndMemoriesTabs ~ userData:", userData)
 
 
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      let currUser = localStorage.getItem("amsjbckumr")
-      /*currUser = jwt.verify(currUser, process.env.NEXT_PUBLIC_JWT_SECRET)*/
+  // useEffect(() => {
+  //   if (typeof window !== "undefined") {
+  //     let currUser = localStorage.getItem("amsjbckumr")
+  //     /*currUser = jwt.verify(currUser, process.env.NEXT_PUBLIC_JWT_SECRET)*/
 
-      if (currUser) {
-        setCurrUser(currUser)
-      }
-    }
-  }, [])
+  //     if (currUser) {
+  //       setCurrUser(currUser)
+  //     }
+  //   }
+  // }, [])
   async function getUserMemories(userId) {
     if (!userId) {
       toast({

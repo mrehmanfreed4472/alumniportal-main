@@ -16,6 +16,8 @@ import Navbar2 from "@/components/header/Navbar2"
 
 import { useToast } from "@/hooks/use-toast"
 import Footer from "@/components/footer/Footer"
+import { useSelector } from "react-redux"
+import { isAuthenticated } from "@/services/checkAuth"
 
 const description1=["Stay connected with your Alumni and fellow classmates. Explore the latest updates and opportunities.","Stay connected with your alma mater and fellow alumni. Explore the latest updates and opportunities."]
 
@@ -24,24 +26,23 @@ export default function AlumniHome() {
   const [isOpen, setIsOpen] = useState(false)
 
   const toggleMenu = () => setIsOpen(!isOpen)
+  const userData = useSelector((state) => state?.userInfo?.userData);
+  console.log("🚀 ~ AlumniHome ~ userData:", userData)
 
 
-
+  const user = useSelector((state) => state.user.user);
+  console.log("🚀 ~ AlumniHome ~ user:", user)
   //geting user info 
-  const [userData, setUserData] = useState({ collegeName: '', name: '' });
-  useEffect(() => {
-    let user = (localStorage.getItem('amsjbckumr'));
-    /*user = jwt.verify(user, process.env.NEXT_PUBLIC_JWT_SECRET);*/
-    if (user) {
-      const { collegeName, name, role,  } = user;
-
-      setUserData({ collegeName, name, role });
-    }
-
-  }, [])
-
-  //logout 
   const router = useRouter();
+  // const token = useSelector((state) => state.auth.token); 
+
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      console.log("User not authenticated, redirecting to login");
+      router.replace("/login");
+    }
+  }, [router]);
+
   const handleLogout = (e) => {
     e.preventDefault();
     try {
@@ -60,15 +61,21 @@ export default function AlumniHome() {
     <div className="flex flex-col min-h-screen bg-gray-50">
       <Navbar2 />
       <main className="container mx-auto flex-1">
-        <section id="dashboard" className="w-full py-12 md:py-24 lg:py-32 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+          <section id="dashboard" style={{
+            backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(/image/NTU-View.jpg)`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
+            backgroundBlendMode: "multiply"
+          }} className="w-full py-12 md:py-24 lg:py-32 bg-gradient-to-r  from-[#A51C30] to-[#D43F56] to-indigo-600 text-white">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center space-y-4 text-center">
               <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none">
-                Welcome, {userData.name}!
+                Welcome, {userData?.userId?.name}!
               </h1>
               <p className="mx-auto max-w-[700px] text-lg md:text-xl text-zinc-200">
                 { 
-                  userData.role === "alumni" ? (
+                  user?.role === "alumni" ? (
                     description1[1]
                   ) : (
                     description1[0]
@@ -136,17 +143,17 @@ A walk down memory lane awaits as we honour their incredible journey and achieve
             <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl mb-8">Get Involved</h2>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               <InvolvementCard
-                icon={<Users className="h-10 w-10 text-blue-600" />}
-                title={ userData.role === "alumni" ? ("Mentor a Student") : ("Get Mentorship from Alumni")}
-                description={ userData.role === "alumni" ? ("Share your experience and guide current students in their career paths.") : ("Get mentorship from alumni to elevate your career, knowledge, and experience")}
+                icon={<Users className="h-10 w-10 text-[#A51C30]" />}
+                title={ user?.role === "alumni" ? ("Mentor a Student") : ("Get Mentorship from Alumni")}
+                description={ user?.role === "alumni" ? ("Share your experience and guide current students in their career paths.") : ("Get mentorship from alumni to elevate your career, knowledge, and experience")}
               />
               <InvolvementCard
-                icon={<GraduationCap className="h-10 w-10 text-blue-600" />}
-                title={ userData.role === "alumni" ? ("Contribute to Scholarships") : ("Get Scholarships from Alumni")}
-                description={ userData.role === "alumni" ? ("Help deserving students achieve their dreams by contributing to our scholarship fund.") : ("Recive scholarships from alumni to enhance your education, and unloak future career opportunities")}
+                icon={<GraduationCap className="h-10 w-10 text-[#A51C30]" />}
+                title={ user?.role === "alumni" ? ("Contribute to Scholarships") : ("Get Scholarships from Alumni")}
+                description={ user?.role === "alumni" ? ("Help deserving students achieve their dreams by contributing to our scholarship fund.") : ("Recive scholarships from alumni to enhance your education, and unloak future career opportunities")}
               />
               <InvolvementCard
-                icon={<Calendar className="h-10 w-10 text-blue-600" />}
+                icon={<Calendar className="h-10 w-10 text-[#A51C30]" />}
                 title="Organize Alumni Meetups"
                 description="Bring together alumni in one place for networking and nostalgia."
               />

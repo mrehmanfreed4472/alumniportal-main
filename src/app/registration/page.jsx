@@ -5,32 +5,35 @@ import { ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/hooks/use-toast'
-import { collegeName } from '/src/data/college.js'
+import { useDispatch } from 'react-redux'
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import NavForSlash from '@/components/header/NavForSlash'
+import { handleSignupApi } from '@/features/auth/authSlice'
 
 export default function SignupForm() {
   const router = useRouter()
   const { toast } = useToast()
+  const dispatch = useDispatch()
 
   const [inputs, setInputs] = useState({
     name: "",
     email: "",
     password: "",
     role: "",
-    collegeName: "",
   })
   const [isLoading, setLoading] = useState(false)
-  const [collegeSearch, setCollegeSearch] = useState("")
 
   const handleSignup = async () => {
     setLoading(true)
 
+    const { name, email, password, role } = inputs
+
     // Validate input fields
-    if (!inputs.name || !inputs.email || !inputs.password || !inputs.role || !inputs.collegeName) {
+    if (!name || !email || !password || !role) {
       toast({
         variant: "red",
         title: "All fields are required!",
@@ -39,33 +42,47 @@ export default function SignupForm() {
       return
     }
 
-    // Simulate successful signup (since no backend yet)
-    setTimeout(() => {
-      toast({
-        variant: "green",
-        title: "Signup successful! Redirecting to login...",
-      });
+    try {
 
-      router.push('/login'); // Redirect to login page
-    }, 1000);
+
+      const res = await dispatch(handleSignupApi(inputs)).unwrap()
+
+      if (res?.status === 201 || res?.status === 200) {
+        toast({
+          variant: "green",
+          title: "Signup successful! Redirecting to login...",
+        })
+        setTimeout(() => {
+          router.push('/login')
+        }, 1000)
+      } else {
+        toast({
+          variant: "red",
+          title: res?.data?.message || "Signup failed. Try again!",
+        })
+      }
+    } catch (err) {
+      console.error("Signup error:", err)
+      toast({
+        variant: "red",
+        title: err?.message || "Something went wrong!",
+      })
+    } finally {
+      setLoading(false)
+    }
   }
 
-  // Filter colleges based on search
-  const filteredColleges = collegeName.filter(college =>
-    college.toLowerCase().includes(collegeSearch.toLowerCase())
-  )
-
   return (
-    <div> 
+    <div>
       <NavForSlash />
 
       <div className="flex justify-center min-h-screen max-h-[90%] bg-white">
-        <div className="w-full max-w-md max-h-fit mt-14 p-8 space-y-8 bg-white rounded-xl">         
+        <div className="w-full max-w-md max-h-fit mt-14 p-8 space-y-8 bg-white rounded-xl">
           <div className="text-center">
             <h2 className="text-3xl font-extrabold text-gray-900">Sign up to AMS</h2>
             <p className="mt-2 text-sm text-blue-600">
               Already have an account?{' '}
-              <Link href="../login" className="font-medium underline text-blue-600 hover:text-blue-500">
+              <Link href="/login" className="font-medium underline text-blue-600 hover:text-blue-500">
                 Login to your account
               </Link>
             </p>
@@ -113,28 +130,6 @@ export default function SignupForm() {
                     <SelectItem value="alumni">Alumni</SelectItem>
                     <SelectItem value="student">Student</SelectItem>
                     <SelectItem value="guest">Guest</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="college">College</Label>
-                <Select onValueChange={(value) => setInputs({ ...inputs, collegeName: value })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select College" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <Input
-                      type="text"
-                      placeholder="Search for your college"
-                      value={collegeSearch}
-                      onChange={(e) => setCollegeSearch(e.target.value)}
-                      className="mb-2"
-                    />
-                    {filteredColleges.map((college, index) => (
-                      <SelectItem key={index} value={college}>
-                        {college}
-                      </SelectItem>
-                    ))}
                   </SelectContent>
                 </Select>
               </div>

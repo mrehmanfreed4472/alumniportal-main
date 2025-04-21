@@ -89,8 +89,8 @@ export default function ProfileForm() {
 
   function fetchUser() {
     if (typeof window !== 'undefined') {
-      let userData = localStorage.getItem("amsjbckumr")
-      userData = jwt.verify(userData,process.env.NEXT_PUBLIC_JWT_SECRET)
+      // let userData = localStorage.getItem("amsjbckumr")
+      // userData = jwt.verify(userData,process.env.NEXT_PUBLIC_JWT_SECRET)
       if (userData) {
         setUser(userData)
         setInputs({

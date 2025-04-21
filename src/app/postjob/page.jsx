@@ -1,26 +1,17 @@
 'use client'
-import jwt from "jsonwebtoken"
-import React from 'react'
-import { useState } from 'react'
-import axios from 'axios'
+import React, { useState } from 'react';
+import axios from 'axios';
 import Navbar2 from '@/components/header/Navbar2';
-import { postUserPostUrl } from "@/urls/urls.js"
 import { Button } from '@/components/ui/button';
-import useCloudinaryImageUploader from '@/services/cloudinary';
-
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import { useDispatch, useSelector } from "react-redux";
+import { PostJobApi } from "@/features/jobPost/PostJobSlice";
+
 export default function ContactPageOne() {
-
   const router = useRouter();
-
-  const {
-    previewUrl,
-    uploading,
-    error,
-    handleImageChange,
-    uploadImage
-  } = useCloudinaryImageUploader();
+  const dispatch = useDispatch();
+  const { toast } = useToast();
 
   const [input, setInput] = useState({
     title: "",
@@ -28,237 +19,177 @@ export default function ContactPageOne() {
     category: "",
     url: "",
   });
-  const { toast } = useToast();
 
-  const [thumbnail, setThumbnail] = useState(undefined);
+  const [thumbnail, setThumbnail] = useState(null);
   const [msg, setmsg] = useState("");
   const [err, seterr] = useState("");
   const [isLoading, setLoading] = useState(false);
 
+  const userData = useSelector((state) => state?.user?.userData);
+  console.log("🚀 ~ ContactPageOne ~ userData:", userData);
+
   const handleSubmit = async (e) => {
-    // e.preventDefault();
-    if (!input.title || !input.description || !input.category || !input.url) {
-      // seterr("Please fill all the fields")
-      e.preventDefault();
+    e.preventDefault();
+
+    if (!input.title || !input.description || !input.category || !input.url || !thumbnail) {
       toast({
         variant: "red",
         title: "Please fill all the fields",
         duration: 2000
-      })
-      return;
-    }
-    setLoading(true)
-    seterr("")
-    setmsg("Posting..")
-    console.log("posting job")
-    let user;
-    if (typeof window !== undefined) {
-      user = localStorage.getItem("amsjbckumr")
-      user = jwt.verify(user, process.env.NEXT_PUBLIC_JWT_SECRET)
-    }
-    if (!user) {
-      toast({
-        description: "Please login first",
-        variant: "red",
-      })
-      return;
-    }
-    console.log(user);
-    let imageInfo = {}
-    await uploadImage()
-      .then((res) => {
-        imageInfo = res;
-      })
-      .catch((err) => {
-        console.log(err);
-        toast({
-          variant: "red",
-          title: err.response.data.msg,
-          duration: 1500
-        })
-        setLoading(false);
-        return;
       });
+      return;
+    }
+
+    setLoading(true);
+    setmsg("Posting..");
+    seterr("");
 
     try {
-      await axios.post(postUserPostUrl, {
-        thumbnail: imageInfo,
-        postedBy: user._id,
-        postedByName: user.name,
-        title: input.title,
-        description: input.description,
-        category: input.category,
-        url: input.url
-      })
-        .then((res) => {
-          console.log(res.data);
-          setInput({
-            title: "",
-            description: "",
-            category: "",
-            url: "",
-          })
-          setThumbnail({});
-          setmsg("")
-          toast({
-            variant: "green",
-            title: "Posted Successfully",
-            duration: 1700
-          })
-          setLoading(false)
-          router.replace("/jobposts")
-        })
-        .catch((err) => {
-          console.log(err);
-          setmsg("")
-          toast({
-            variant: "red",
-            title: err.response.data.msg,
-            duration: 1700
-          })
-          setLoading(false);
-          return
-        })
+      const formData = new FormData();
+      formData.append("thumbnail", thumbnail);
+      // formData.append("postedByName", userData?.name || "Anonymous");
+      formData.append("title", input.title);
+      formData.append("description", input.description);
+      formData.append("category", input.category);
+      formData.append("url", input.url);
+
+      await dispatch(PostJobApi(formData));
+
+      setInput({
+        title: "",
+        description: "",
+        category: "",
+        url: "",
+      });
+
+      setThumbnail(null);
+      setmsg("");
+      toast({
+        variant: "green",
+        title: "Posted Successfully",
+        duration: 1700
+      });
+
+      setLoading(false);
+      router.replace("/jobposts");
     } catch (error) {
-      console.log(error)
-      setmsg("")
+      setmsg("");
       toast({
         variant: "red",
-        title: error.message,
+        title: error.message || "Something went wrong",
         duration: 1700
-      })
+      });
       setLoading(false);
-      return
     }
-  }
-
-
-
+  };
 
   return (
     <div>
       <Navbar2 />
       <div className="mx-auto max-w-7xl px-4">
-        {/* Hero Map */}
-
-        <div className="grid items-center justify-items-center mx-auto max-w-7xl  py-auto pt-8 md:pt-8">
-          {/* contact from */}
+        <div className="grid items-center justify-items-center mx-auto max-w-7xl py-auto pt-8 md:pt-8">
           <div className="flex w-full flex-col items-center justify-center">
             <div className="px-2 md:px-12">
-              <p className="text-lg w-full md:font-semibold text-blue-600 md:text-[26px] text-center">Post a Job/Internship</p>
-              {/* <p className="mt-4 text-lg text-gray-600">
-                  Our friendly team would love to hear from you.
-                </p> */}
+              <p className="text-lg w-full md:font-semibold text-blue-600 md:text-[26px] text-center">
+                Post a Job/Internship
+              </p>
 
-
-              <form onSubmit={handleSubmit} className="mt-4 space-y-4  md:w-[500px] w-[350px]">
+              <form onSubmit={handleSubmit} className="mt-4 space-y-4 md:w-[500px] w-[350px]">
                 <div className="grid w-full items-center gap-1.5">
-
-                  <p className='text-blue-700 text-center text-lg font-semibold '>{msg}</p>
+                  <p className='text-blue-700 text-center text-lg font-semibold'>{msg}</p>
                   <p className='text-xs font-light text-red-600 text-center'>All (*) fields are required</p>
 
-                  <div className="grid w-full  items-center gap-1.5">
-                    <label
-                      className="text-sm font-medium leading-none text-gray-700 peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      htmlFor="title"
-                    >
+                  <div className="grid w-full items-center gap-1.5">
+                    <label htmlFor="title" className="text-sm font-medium leading-none text-gray-700">
                       Title*
                     </label>
                     <input
-                      className="flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:focus:ring-gray-400 dark:focus:ring-offset-gray-900"
                       type="text"
                       id="title"
                       placeholder="Title"
                       value={input.title}
-                      onChange={(e) => {
-                        setInput({ ...input, title: e.target.value })
-                      }}
+                      onChange={(e) => setInput({ ...input, title: e.target.value })}
+                      className="flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400"
                     />
                   </div>
                 </div>
-                <div className="grid w-full  items-center gap-1.5">
-                  <label
-                    className="text-sm font-medium leading-none text-gray-700 peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                    htmlFor="description"
-                  >
+
+                <div className="grid w-full items-center gap-1.5">
+                  <label htmlFor="description" className="text-sm font-medium leading-none text-gray-700">
                     Description*
                   </label>
                   <textarea
-                    className="flex h-20 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700  dark:focus:ring-gray-400 dark:focus:ring-offset-gray-900"
-                    type="text"
                     id="description"
                     value={input.description}
-                    placeholder="Job Description, Skills, Qualification, Salery , etc.."
-                    onChange={(e) => {
-                      setInput({ ...input, description: e.target.value })
-                    }}
+                    placeholder="Job Description, Skills, Qualification, Salary, etc..."
+                    onChange={(e) => setInput({ ...input, description: e.target.value })}
+                    className="flex h-20 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400"
                   />
                 </div>
-                <div className="grid w-full  items-center gap-1.5">
-                  <label
-                    className="text-sm font-medium leading-none text-gray-700 peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                    htmlFor="thumbnail"
-                  >
-                    Thumbnail
+
+                <div className="grid w-full items-center gap-1.5">
+                  <label htmlFor="thumbnail" className="text-sm font-medium leading-none text-gray-700">
+                    Thumbnail*
                   </label>
-                  <div className='flex '>
-                    <input type="file" onChange={handleImageChange} />
-                    {previewUrl && <img src={previewUrl} alt="Preview" style={{ width: "30px" }} />}
+                  <div className="flex">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setThumbnail(e.target.files[0])}
+                    />
+                    {thumbnail && (
+                      <img
+                        src={URL.createObjectURL(thumbnail)}
+                        alt="Preview"
+                        style={{ width: "30px" }}
+                      />
+                    )}
                   </div>
                 </div>
-                <div className="grid w-full  items-center gap-1.5 text-black">
-                  <label
-                    className="text-sm font-medium leading-none text-gray-700 peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                    htmlFor="thumbnail"
-                  >
+
+                <div className="grid w-full items-center gap-1.5 text-black">
+                  <label htmlFor="category" className="text-sm font-medium leading-none text-gray-700">
                     Category*
                   </label>
                   <select
-                    className="flex text-black h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:focus:ring-gray-400 dark:focus:ring-offset-gray-900"
                     value={input.category}
-                    onChange={(e) => {
-                      setInput({ ...input, category: e.target.value })
-                    }}
+                    onChange={(e) => setInput({ ...input, category: e.target.value })}
+                    className="flex text-black h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-400"
                   >
-                    <option className='text-black dark:text-gray-300' value="">Select Category</option>
-                    <option className='text-black dark:text-gray-300' value="internship">Internship</option>
-                    <option className='text-black dark:text-gray-300' value="job">Job</option>
+                    <option value="">Select Category</option>
+                    <option value="internship">Internship</option>
+                    <option value="job">Job</option>
                   </select>
                 </div>
-                <div className="grid w-full  items-center gap-1.5">
-                  <label
-                    className="text-sm font-medium leading-none text-gray-700 peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                    htmlFor="url"
-                  >
+
+                <div className="grid w-full items-center gap-1.5">
+                  <label htmlFor="url" className="text-sm font-medium leading-none text-gray-700">
                     URL*
                   </label>
                   <input
-                    className="flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:focus:ring-gray-400 dark:focus:ring-offset-gray-900"
                     type="url"
                     id="url"
                     placeholder="url"
                     value={input.url}
-                    onChange={(e) => {
-                      setInput({ ...input, url: e.target.value })
-                    }}
+                    onChange={(e) => setInput({ ...input, url: e.target.value })}
+                    className="flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400"
                   />
                 </div>
+
                 <p className='text-red-600 text-center text-base font-semibold'>{err}</p>
+
                 <Button
                   disabled={isLoading}
                   type="submit"
-                  onClick={handleSubmit}
-                  className="w-full rounded-md bg-blue-700 hover:bg-blue-700/80 px-3 py-2 text-sm font-semibold text-white shadow-sm  focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+                  className="w-full rounded-md bg-blue-700 hover:bg-blue-700/80 px-3 py-2 text-sm font-semibold text-white shadow-sm"
                 >
-                  {isLoading === false ? (<>Post</>) : (<>Posting...</>)}
+                  {isLoading ? "Posting..." : "Post"}
                 </Button>
               </form>
-
             </div>
           </div>
         </div>
       </div>
-
     </div>
-  )
+  );
 }

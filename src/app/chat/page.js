@@ -144,7 +144,7 @@ export default function WhatsAppClone() {
       <div className="max-w-[2100px] mx-auto flex w-full h-[91%] bg-background border-white border-[1px] fixed bottom-0 overflow-x-clip">
         <div className="w-full md:w-96 flex flex-col border-r">
           {/* Chat list header */}
-          <div className="flex justify-between items-center p-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-primary-foreground">
+          <div className="flex justify-between items-center p-4 bg-gradient-to-r from-[#A51C30] to-[#D43F56] text-primary-foreground">
             <h1 className="text-xl font-bold">Chat</h1>
             <Dialog>
               <DialogTrigger asChild>

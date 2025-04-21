@@ -14,6 +14,7 @@ import Navbar2 from "@/components/header/Navbar2"
 import AlumniLoading from '@/components/AlumniLoading'
 import { useRouter } from 'next/navigation'
 import { useToast } from "@/hooks/use-toast"
+import { isAuthenticated } from "@/services/checkAuth"
 
 export default function UserConnectionPage() {
   const { toast } = useToast()
@@ -25,7 +26,12 @@ export default function UserConnectionPage() {
   const [activeTab, setActiveTab] = useState("all")
   const [loading, setLoading] = useState(false)
   const [noAlumni, setNoAlumni] = useState(false)
-
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      console.log("User not authenticated, redirecting to login");
+      router.replace("/login");
+    }
+  }, [router]);
   // Dummy data for alumni
   const [users, setUsers] = useState([
     {
@@ -121,7 +127,7 @@ export default function UserConnectionPage() {
       <div className="container mx-auto py-4 px-4 sm:px-6 lg:px-8">
         <Card className="w-full max-w-6xl mx-auto bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900 shadow-xl">
           <CardHeader className="pb-4">
-            <CardTitle className="text-3xl sm:text-4xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
+            <CardTitle className="text-3xl sm:text-4xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r text-[#A51C30] to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
               Alumni Directory
             </CardTitle>
           </CardHeader>
@@ -193,7 +199,7 @@ export default function UserConnectionPage() {
                         >
                           <Card className="overflow-hidden hover:shadow-2xl transition-shadow duration-300 h-full flex flex-col">
                             <CardHeader className="p-0">
-                              <div className="h-24 bg-gradient-to-r from-blue-400 to-indigo-400"></div>
+                              <div className="h-24 bg-gradient-to-r from-[#A51C30] to-[#D43F56]"></div>
                             </CardHeader>
                             <CardContent className="pt-0 pb-6 px-6 flex-grow flex flex-col">
                               <div className="flex justify-center -mt-12 mb-4">

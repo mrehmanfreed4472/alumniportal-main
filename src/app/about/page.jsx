@@ -29,7 +29,7 @@ export default function AboutPage() {
       <NavForSlash />
       <main className="container mx-auto px-4 py-12">
         <section className="text-center mb-16">
-          <h1 className="text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+          <h1 className="text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-br from-[#A51C30] to-[#C24C5E]">
             About AMS
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
@@ -40,7 +40,7 @@ export default function AboutPage() {
         </section>
 
         <section id="mission-vision" className="mb-16 grid md:grid-cols-2 gap-8">
-          <Card className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
+          <Card className="bg-gradient-to-br from-[#A51C30] to-[#C24C5E] text-white">
             <CardHeader>
               <CardTitle className="text-2xl font-semibold">Our Mission</CardTitle>
             </CardHeader>
@@ -111,7 +111,7 @@ export default function AboutPage() {
               {
                 name: "Manahil ch",
                 role: "Developer",
-                image: "/image/profileLogo.png?height=400&width=400",
+                image: "/image/t4.jpg?height=300&width=400",
                 bio: "Passionate about bridging gaps between academic and professional circles. Manahil brings years of experience in educational technology and a vision for transforming how students and alumni connect.",
                 linkedin: "",
                 github: "",
@@ -119,7 +119,7 @@ export default function AboutPage() {
               {
                 name: "Muhammad Rehman Freed",
                 role: "Team Lead",
-                image: "/image/t1.jpg?height=400&width=400",
+                image: "/image/t1.jpg?height=150&width=400",
                 bio: "With expertise in software development and a deep interest in AI, Rehman leads our technical innovations. His problem-solving skills drive AMS cutting-edge features and user-centric design.",
                 linkedin: "",
                 github: "",
@@ -127,7 +127,7 @@ export default function AboutPage() {
               {
                 name: "Umer Hameed",
                 role: "Developer",
-                image: "/image/profileLogo.png?height=400&width=400",
+                image: "/image/t3.jpg?height=400&width=400",
                 bio: "With expertise in software development and a deep interest in Data Mining. His  skills help AMS cutting-edge features and user-centric design.",
                 linkedin: "",
                 github: "",

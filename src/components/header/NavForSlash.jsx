@@ -361,7 +361,7 @@ function Navbar2() {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>) : (
-            <Button className="bg-blue-600 hover:bg-blue-600/80 mx-2 rounded-sm" onClick={() => {router.push('/login')}}>
+            <Button className="bg-[#A51C30] hover:bg-[#D43F56] mx-2 rounded-sm" onClick={() => {router.push('/login')}}>
               Login
             </Button>
           )}

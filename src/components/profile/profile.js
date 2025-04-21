@@ -19,56 +19,19 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useToast } from "@/hooks/use-toast"
+import { useSelector } from "react-redux"
 
-export default function ProfileDisplay() {
-  const [activeTab, setActiveTab] = useState("about")
-  const { toast } = useToast()
+export default function ProfileDisplay(userData, isCurrentUser) {
   const router = useRouter()
-
-  // Dummy data for the profile
-  const [usr, setUsr] = useState({
-    _id: '1',
-    name: 'John Doe',
-    profileImage: 'https://via.placeholder.com/150',
-    isVerified: true,
-    jobTitle: 'Software Engineer',
-    companyName: 'Tech Solutions Inc.',
-    bio: 'Passionate about leveraging technology to solve real-world problems. Experienced in machine learning and cloud computing.',
-    email: 'john.doe@example.com',
-    location: 'New York, USA',
-    linkedin: 'https://www.linkedin.com/in/johndoe',
-    github: 'https://github.com/johndoe',
-    skills: ['JavaScript', 'React', 'Node.js', 'Python'],
-    experiences: [
-      {
-        position: 'Senior Software Engineer',
-        company: 'Tech Solutions Inc.',
-        startDate: '2022',
-        endDate: 'Present',
-        description: 'Working on cutting-edge technologies to build scalable web applications.'
-      },
-      {
-        position: 'Software Engineer',
-        company: 'Innovate Systems',
-        startDate: '2019',
-        endDate: '2022',
-        description: 'Developed and maintained web applications using React and Node.js.'
-      }
-    ],
-    education: [
-      {
-        branch: 'Computer Science',
-        course: 'B.Tech',
-        collegeName: 'ABC University',
-        startDate: '2015',
-        endDate: '2019'
-      }
-    ],
-    connectedUsers: ['2', '3']
-  })
+  const { toast } = useToast()
+  const [activeTab, setActiveTab] = useState("about")
+  
+  const currentUser = useSelector((state) => state.userInfo.userData)
+  console.log("🚀 ~ ProfileDisplay ~ currentUser:", currentUser)
+  const [loading, setLoading] = useState(false)
 
   const [iscurrent, setcurrent] = useState(true) // Simulate the current user
-  const [loading, setLoading] = useState(false)
+
 
   const handleConnect = () => {
     toast({
@@ -79,7 +42,7 @@ export default function ProfileDisplay() {
   }
 
   const handleMessage = () => {
-    router.push(`/chat?userId=${usr._id}`)
+    router.push(`/chat?userId=${userData?.userId?._id}`)
   }
 
   const handleVerify = () => {
@@ -114,17 +77,17 @@ export default function ProfileDisplay() {
       ) : (
         <div className="container mx-auto py-4 px-4 sm:py-6 sm:px-6 lg:px-8">
           <Card className="w-full max-w-4xl mx-auto overflow-hidden">
-            <div className="relative bg-gradient-to-r from-blue-600 to-indigo-600 pt-20 pb-16 px-4 sm:pt-24 sm:pb-32 sm:px-6 lg:px-8">
+            <div className="relative bg-gradient-to-r from-[#A51C30] to-[#C24C5E] pt-20 pb-16 px-4 sm:pt-24 sm:pb-32 sm:px-6 lg:px-8">
               <div className="absolute -bottom-12 left-0 w-full flex justify-center sm:justify-start sm:left-6 lg:left-8">
                 <Avatar className="w-[100px] h-[100px] sm:w-32 sm:h-32 border-4 border-white">
-                  <AvatarImage src={usr.profileImage} alt={usr.name} />
-                  <AvatarFallback>{usr.name.split(" ").map(n => n[0]).join("")}</AvatarFallback>
+                  <AvatarImage src={currentUser?.profileImage} alt={currentUser?.userId?.name} />
+                  <AvatarFallback>{currentUser?.userId?.name.split(" ").map(n => n[0]).join("")}</AvatarFallback>
                 </Avatar>
               </div>
               <div className="text-white text-center sm:text-left sm:pl-36 lg:pl-40">
                 <div className="md:flex gap-2">
-                  <h1 className="text-2xl sm:text-3xl font-bold">{usr.name}</h1>
-                  {usr.isVerified ? (
+                  <h1 className="text-2xl sm:text-3xl font-bold">{currentUser?.userId?.name}</h1>
+                  {currentUser?.isVerified ? (
                     <Badge variant="success" className="hidden md:flex mr-2 -py-2 px-3 text-xs sm:text-sm text--800 rounded-full">
                       <ShieldCheck className="w-4 h-4 mr-2" />
                       Verified User
@@ -136,10 +99,10 @@ export default function ProfileDisplay() {
                     </div>
                   )}
                 </div>
-                <p className="text-sm sm:text-base mt-1">{usr.jobTitle} at {usr.companyName}</p>
+                <p className="text-sm sm:text-base mt-1">{currentUser?.experience?.[0]?.role} at {currentUser?.experience?.[0]?.companyName}</p>
                 <div className="mt-2 flex items-center justify-center sm:justify-start">
                   <Users className="w-5 h-5 mr-2" />
-                  <p className="text-sm text-white mt-1">{usr.connectedUsers.length} connections</p>
+                  <p className="text-sm text-white mt-1">{currentUser?.connections?.length || 0} connections</p>
                 </div>
               </div>
             </div>
@@ -148,7 +111,7 @@ export default function ProfileDisplay() {
                 {iscurrent ? (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button size="sm" variant="ghost" className="text-xs sm:text-sm rounded-sm bg-blue-600 hover:bg-blue-600/80 hover:text-white text-white">
+                      <Button size="sm" variant="ghost" className="text-xs sm:text-sm rounded-sm bg-[#A51C30]  hover:bg-primary/90 hover:text-white text-white">
                         <Plus className="h-4 w-4 mr-1 -ml-1" />
                         Post
                       </Button>
@@ -169,7 +132,7 @@ export default function ProfileDisplay() {
                     </DropdownMenuContent>
                   </DropdownMenu>
                 ) : null}
-                {iscurrent && !usr.isVerified && (
+                {iscurrent && !currentUser?.isVerified && (
                   <Button onClick={handleVerify} variant="default" size="sm" className="bg-blue-600 text-primary-foreground hover:bg-primary/90 rounded-md transition-colors duration-200">
                     <ShieldCheck className="w-4 h-4 mr-2" />
                     <span className="hidden sm:inline">Verify Account</span>
@@ -182,7 +145,7 @@ export default function ProfileDisplay() {
                   </Button>
                 ) : null}
                 {!iscurrent ? (
-                  usr.connectedUsers.includes('1') ? (
+                  currentUser?.connectedUsers.includes('1') ? (
                     <Button onClick={handleMessage} size="sm" className="mr-2 text-xs sm:text-sm bg-blue-600 hover:bg-blue-600/80 text-white">
                       <MessageCircle className="w-4 h-4 mr-2" />
                       Message
@@ -210,17 +173,17 @@ export default function ProfileDisplay() {
                   <div className="space-y-4 sm:space-y-6">
                     <div>
                       <h3 className="text-base sm:text-lg font-semibold mb-2">About</h3>
-                      <p className="text-xs sm:text-sm">{usr.bio}</p>
+                      <p className="text-xs sm:text-sm">{currentUser?.about}</p>
                     </div>
                     <div>
                       <h3 className="text-base sm:text-lg font-semibold mb-2">Contact Information</h3>
                       <div className="grid gap-2 text-xs sm:text-sm">
                         {[
-                          { icon: Mail, text: usr.email },
-                          { icon: MapPin, text: usr.location },
-                          { icon: Linkedin, text: "LinkedIn Profile", link: usr.linkedin },
-                          { icon: Github, text: "GitHub Profile", link: usr.github },
-                        ].map((item, index) => (
+                          { icon: Mail, text: currentUser?.userId?.email },
+                          { icon: MapPin, text: currentUser?.contactInfo?.location },
+                          { icon: Linkedin, text: "LinkedIn Profile", link: currentUser?.contactInfo?.linkedin },
+                          { icon: Github, text: "GitHub Profile", link: currentUser?.contactInfo?.github },
+                        ]?.map((item, index) => (
                           <div key={index} className="flex items-center">
                             <item.icon className="w-3 h-3 sm:w-4 sm:h-4 mr-2 text-muted-foreground" />
                             {item.link ? (
@@ -237,7 +200,7 @@ export default function ProfileDisplay() {
                     <div>
                       <h3 className="text-base sm:text-lg font-semibold mb-2">Skills</h3>
                       <div className="flex flex-wrap gap-1 sm:gap-2">
-                        {usr.skills.map((skill, index) => (
+                        {currentUser?.skills?.map((skill, index) => (
                           <Badge key={index} variant="secondary" className="text-xs">
                             {skill}
                           </Badge>
@@ -249,13 +212,14 @@ export default function ProfileDisplay() {
                 <TabsContent value="experience" className="mt-4 sm:mt-6">
                   <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Work Experience</h3>
                   <div className="space-y-3 sm:space-y-4">
-                    {usr.experiences.map((exp, index) => (
+                    {currentUser?.experience?.map((exp, index) => (
                       <Card key={index}>
                         <CardHeader className="p-3 sm:p-4">
-                          <CardTitle className="text-sm sm:text-base">{exp.position}</CardTitle>
-                          <CardDescription className="text-xs sm:text-sm">at {exp.company} • {exp.startDate} ~ {exp.endDate}</CardDescription>
+                          <CardTitle className="text-sm sm:text-base">{exp?.role}</CardTitle>
+                          {/* <CardDescription className="text-xs sm:text-sm">at {exp?.companyName} • {exp.startDate} ~ {exp.endDate}</CardDescription> */}
+                          <CardDescription className="text-xs sm:text-sm">at {exp?.companyName} • </CardDescription>
                         </CardHeader>
-                        <CardContent className="text-[16px]">{exp.description}</CardContent>
+                        <CardContent className="text-[16px]">{exp?.description}</CardContent>
                       </Card>
                     ))}
                   </div>
@@ -263,11 +227,11 @@ export default function ProfileDisplay() {
                 <TabsContent value="education" className="mt-4 sm:mt-6">
                   <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Education</h3>
                   <div className="space-y-3 sm:space-y-4">
-                    {usr.education.map((edu, index) => (
+                    {currentUser?.education?.map((edu, index) => (
                       <Card key={index}>
                         <CardHeader className="p-3 sm:p-4">
-                          <CardTitle className="text-sm sm:text-base">{edu.branch} ({edu.course})</CardTitle>
-                          <CardDescription className="text-xs sm:text-sm">{edu.collegeName} • {edu.startDate} ~ {edu.endDate}</CardDescription>
+                          <CardTitle className="text-sm sm:text-base">{edu?.universityName} ({edu?.degree})</CardTitle>
+                          <CardDescription className="text-xs sm:text-sm">{edu?.universityName} • {edu?.startDate?.split('T')[0]} ~ {edu?.endDate?.split('T')[0]}</CardDescription>
                         </CardHeader>
                       </Card>
                     ))}
@@ -276,14 +240,17 @@ export default function ProfileDisplay() {
                 <TabsContent value="projects" className="mt-4 sm:mt-6">
                   <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Projects</h3>
                   <div className="grid gap-3 sm:gap-4">
-                    <Card>
+                  {currentUser?.projects?.map((proj, index) => (
+                    <Card key={index}>
                       <CardHeader className="p-3 sm:p-4">
-                        <CardTitle className="text-sm sm:text-base">Project Title</CardTitle>
+                        <CardTitle className="text-sm sm:text-base">{proj?.title}</CardTitle>
                       </CardHeader>
                       <CardContent className="p-3 sm:p-4 pt-0">
-                        <p className="text-xs sm:text-sm">Project description goes here.</p>
+                      <p className="text-xs sm:text-sm">{proj?.role}</p>
+                        <p className="text-xs sm:text-sm">{proj?.description}</p>
                       </CardContent>
                     </Card>
+                    ))}
                   </div>
                 </TabsContent>
               </Tabs>

@@ -310,7 +310,7 @@ export default function StudentHub() {
     <main className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
       <Card className="w-full max-w-6xl mx-auto bg-gradient-to-br from-purple-50 to-blue-50 dark:from-gray-800 dark:to-gray-900">
         <CardHeader>
-          <CardTitle className="text-3xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600">
+          <CardTitle className="text-3xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-[#A51C30] to-[#D43F56]">
             Student Innovation Hub
           </CardTitle>
           <CardDescription className="text-center text-lg">
