@@ -30,6 +30,7 @@ export default function UserConnectionPage() {
     if (!isAuthenticated()) {
       console.log("User not authenticated, redirecting to login");
       router.replace("/login");
+      return;
     }
   }, [router]);
   // Dummy data for alumni

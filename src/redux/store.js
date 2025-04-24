@@ -3,12 +3,16 @@ import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import authSlice from "../features/auth/authSlice";
 import PostJobSlice from "../features/jobPost/PostJobSlice"
 import userInfoSlice from "../features/auth/userInfoSlice"
+import alumniSlice from "../features/alumni/alumniSlice"
+import memorySlice from "../features/memoery/memorySlice"
 
 // Combine all slices into a single rootReducer
 const rootReducer = combineReducers({
   user: authSlice,
   job: PostJobSlice,
   userInfo: userInfoSlice,
+  alumniList: alumniSlice,
+  memory: memorySlice,
 
 });
 

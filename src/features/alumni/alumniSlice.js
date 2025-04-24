@@ -3,7 +3,8 @@ import client from "@/services/apiClient";
 import { createAsyncThunkWrapper } from "@/redux/wrapper/createAsyncThunkWrapper";
 
 const initialState = {
-  alumniData: {},
+  alumniList: [],
+  alumniData: [],
   loading: false,
   error: null,
 };
@@ -20,8 +21,19 @@ export const registerAlumni = createAsyncThunkWrapper(
   }
 );
 
-const PostJobSlice = createSlice({
-  name: "alumni", 
+export const getAlumniList = createAsyncThunkWrapper(
+  "alumni/AlumniList",
+  async () => {
+    const response = await client.get(`/alumni/all`);
+    console.log("🚀 ~ AlumniList ~ response:", response);
+
+    const { data, status } = response || {};
+    return { data, status };
+  }
+);
+
+const alumniSlice = createSlice({
+  name: "alumni",
   initialState,
   reducers: {},
   extraReducers: (builder) => {
@@ -32,13 +44,27 @@ const PostJobSlice = createSlice({
       .addCase(registerAlumni.fulfilled, (state, action) => {
         console.log("🚀 ~ Job Posted:", action);
         state.loading = false;
-        state.jobData = action.payload?.data?.job || {}; 
+        state.alumniData = action.payload?.data || {};
       })
       .addCase(registerAlumni.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error?.message || "An error occurred while posting the job";
+        state.error =
+          action.error?.message || "An error occurred while posting the job";
+      })
+
+      // 📌 Get alumni list (GET)
+      .addCase(getAlumniList.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(getAlumniList.fulfilled, (state, action) => {
+        state.loading = false;
+        state.alumniList = action.payload?.data || []; // adjust to match your API
+      })
+      .addCase(getAlumniList.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error?.message || "Error fetching alumni list";
       });
   },
 });
 
-export default PostJobSlice.reducer;
+export default alumniSlice.reducer;

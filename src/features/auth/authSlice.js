@@ -132,16 +132,7 @@ export const handleUpdateProfile = createAsyncThunkWrapper(
 const authSlice = createSlice({
   name: "user", 
   initialState,
-  reducers: {
-    setUser: (state, action) => {
-      state.user = action.payload.user;
-      state.token = action.payload.token;
-    },
-    logoutUser: (state) => {
-      state.user = null;
-      state.token = null;
-    },
-  },
+  reducers: {},
   extraReducers: (builder) => {
     builder
       .addCase(handleLoginApi.pending, (state) => {

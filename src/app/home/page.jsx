@@ -16,8 +16,10 @@ import Navbar2 from "@/components/header/Navbar2"
 
 import { useToast } from "@/hooks/use-toast"
 import Footer from "@/components/footer/Footer"
-import { useSelector } from "react-redux"
-import { isAuthenticated } from "@/services/checkAuth"
+import { useDispatch, useSelector } from "react-redux"
+import { getAlumniInfo, getStudentInfo } from "@/features/auth/userInfoSlice"
+import { getToken, getUser, isAuthenticated } from "@/services/checkAuth"
+import { getAlumniList } from "@/features/alumni/alumniSlice"
 
 const description1=["Stay connected with your Alumni and fellow classmates. Explore the latest updates and opportunities.","Stay connected with your alma mater and fellow alumni. Explore the latest updates and opportunities."]
 
@@ -29,32 +31,60 @@ export default function AlumniHome() {
   const userData = useSelector((state) => state?.userInfo?.userData);
   console.log("🚀 ~ AlumniHome ~ userData:", userData)
 
+    const alumniList = useSelector((state) => state?.alumniList?.alumniList)
+    console.log("✅s AlumniHome ~ alumniList:", alumniList)
 
-  const user = useSelector((state) => state.user.user);
+
+  const user = getUser();
+  const userID = user?._id ;
+  const token = getToken();
+  console.log("🚀 ~ AlumniHome ~ token:", token)
   console.log("🚀 ~ AlumniHome ~ user:", user)
   //geting user info 
   const router = useRouter();
+  const dispatch = useDispatch();
   // const token = useSelector((state) => state.auth.token); 
+
+  useEffect(() => {
+    dispatch(getAlumniList());
+  }, []);
 
   useEffect(() => {
     if (!isAuthenticated()) {
       console.log("User not authenticated, redirecting to login");
       router.replace("/login");
+      return;
     }
-  }, [router]);
 
-  const handleLogout = (e) => {
-    e.preventDefault();
-    try {
-      if (typeof window !== undefined) {
-        localStorage.clear();
+    // Fetch user info if authenticated
+    const fetchUserInfo = async () => {
+      try {
+        let userInfo;
 
-        router.push('/')
+        if (user?.role === "alumni") {
+          userInfo = await dispatch(getAlumniInfo(userID));
+        } else if (user?.role === "student") {
+          userInfo = await dispatch(getStudentInfo(userID));
+        }
+
+        console.log("✅ User Info:", userInfo);
+
+        if (userInfo?.payload?.status !== 200) {
+          toast({
+            variant: "destructive",
+            title: "Failed to fetch user info",
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching user info:", error);
       }
-    } catch (error) {
-      console.log(error);
+    };
+
+    if (userID) {
+      fetchUserInfo();
     }
-  }
+  }, [userID, user?.role, dispatch, router]);
+
 
   return (
     <>
@@ -71,7 +101,7 @@ export default function AlumniHome() {
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center space-y-4 text-center">
               <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none">
-                Welcome, {userData?.userId?.name}!
+                Welcome, {user?.name}!
               </h1>
               <p className="mx-auto max-w-[700px] text-lg md:text-xl text-zinc-200">
                 { 
@@ -121,20 +151,17 @@ A walk down memory lane awaits as we honour their incredible journey and achieve
           <div className="container px-4 md:px-6">
             <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl mb-8">Featured Alumni</h2>
             <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+            {alumniList?.alumni?.map((alum) => (
               <AlumniCard
-                name="john doe"
-                class="2026"
-                position="Deputy Director, NTU Faisalabad"
-                image="/image/profileLogo.png"
-                _id="6707c88b84ba8d7558f522aa"
+                key={alum?.id?._id}
+                name={alum?.id?.name}
+                class={alum?.batch}
+                position={alum?.jobTitle}
+                company={alum?.companyName}
+                image={alum?.image || "/image/profileLogo.png"} // fallback image
+                _id={alum?.id?._id}
               />
-              <AlumniCard
-                name="john Doe"
-                class="2026"
-                position="Director , NTU Faisalabad"
-                image="/image/profileLogo.png"
-                _id="670ea6e0602f7597190c86c6"
-              />
+            ))}
             </div>
           </div>
         </section>
@@ -227,19 +254,18 @@ function EventCard({ title, date, description, image }) {
   )
 }
 
-function AlumniCard({ name, class: classYear, position, image, _id }) {
+function AlumniCard({ name, class: classYear, position,company , image, _id }) {
   const router = useRouter()
   const [userData, setUserData] = useState({ collegeName: '', name: ''});
-  useEffect(() => {
-    let user = (localStorage.getItem('amsjbckumr'));
-    /*user = jwt.verify(user, process.env.NEXT_PUBLIC_JWT_SECRET);*/
-    if (user) {
-      const { collegeName, name, profileImage } = user;
+  // useEffect(() => {
 
-      setUserData({ collegeName, name, profileImage });
-    }
+  //   if (user) {
+  //     const { collegeName, name, profileImage } = user;
 
-  }, [])
+  //     setUserData({ collegeName, name, profileImage });
+  //   }
+
+  // }, [])
 
   return (
     <Card className="flex flex-col justify-center items-center text-center p-6 transition-all duration-200 hover:shadow-lg hover:-translate-y-1">
@@ -250,6 +276,7 @@ function AlumniCard({ name, class: classYear, position, image, _id }) {
       <h3 className="text-xl font-semibold mb-1">{name}</h3>
       <p className="text-sm text-gray-500 mb-1">Batch of {classYear}</p>
       <p className="text-sm text-gray-600 mb-4">{position}</p>
+      <p className="text-sm text-gray-600 mb-4">At {company}</p>
       <Button onClick={() => { router.push(`/profile/${_id}`) }} variant="outline">View Profile</Button>
     </Card>
   )

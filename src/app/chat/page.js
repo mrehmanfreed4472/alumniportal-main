@@ -12,9 +12,13 @@ import { formatDistanceToNow } from 'date-fns';
 import Navbar2 from '@/components/header/Navbar2';
 import ChatLoading from '@/components/ChatLoading';
 import { useRouter } from 'next/navigation';
+import { isAuthenticated } from '@/services/checkAuth';
+
 
 // Dummy chat data
 const dummyChats = [
+
+  
   {
     _id: '1',
     avatar: 'https://example.com/avatar1.jpg',
@@ -46,7 +50,15 @@ const dummyChats = [
 function ChatView({ chat, onBack }) {
   const [newMessage, setNewMessage] = useState('');
   const messagesEndRef = useRef(null);
+  const router = useRouter()
 
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      console.log("User not authenticated, redirecting to login");
+      router.replace("/login");
+      return;
+    }
+  }, [router]);
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'auto', block: 'end' });
   };

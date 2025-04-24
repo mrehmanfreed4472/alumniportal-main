@@ -25,7 +25,7 @@ export default function ContactPageOne() {
   const [err, seterr] = useState("");
   const [isLoading, setLoading] = useState(false);
 
-  const userData = useSelector((state) => state?.user?.userData);
+  const userData = useSelector((state) => state?.userInfo?.userData);
   console.log("🚀 ~ ContactPageOne ~ userData:", userData);
 
   const handleSubmit = async (e) => {
@@ -66,7 +66,7 @@ export default function ContactPageOne() {
       setmsg("");
       toast({
         variant: "green",
-        title: "Posted Successfully",
+        title: "Job Posted Successfully",
         duration: 1700
       });
 

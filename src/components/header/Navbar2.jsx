@@ -24,53 +24,17 @@ function Navbar2() {
   // const [userData, setUserData] = useState({ collegeName: '', name: '' })
   const router = useRouter()
   const pathname = usePathname()
-  useEffect(() => {
-    getUser()
-  }, [])
 
-
-  const handleLogout = (e) => {
-    e.preventDefault()
-    try {
-      if (typeof window !== "undefined") {
-        localStorage.clear()
-        if(pathname === '/'){
-          window.location.reload()
-        }else{
-          router.push('/')
-        }
-        
-      }
-    } catch (error) {
-      console.log(error)
-    }
-  }
-  useEffect(() => {
-    let user = (localStorage.getItem('amsjbckumr'))
-    if(!user){
-      return;
-    }
-    /*user = jwt.verify(user, process.env.NEXT_PUBLIC_JWT_SECRET);*/
-    if (user) {
-      const { collegeName, name } = user
-      setUserData({ collegeName, name })
-    }
-  }, [])
-
-  const getUser = () => {
+  const logoutUser = () => {
     if (typeof window !== "undefined") {
-      let data = (localStorage.getItem('amsjbckumr'))
-      if(!data){
-        return;
-      }
-      /*data = (jwt.verify(data, process.env.NEXT_PUBLIC_JWT_SECRET))*/
-      if (data) {
-        setUser(data)
-      }
+      localStorage.removeItem("user");
+      localStorage.removeItem("token");
     }
-  }
+    console.log('Loged out')
+    router.replace("/login");
+  };
 
-  const userData = useSelector((state) => state.userInfo.userData)
+  const userData = useSelector((state) => state?.userInfo?.userData)
   console.log("🚀 ~ Navbar2 ~ userData:", userData)
 
 
@@ -138,7 +102,7 @@ function Navbar2() {
                     <span>Profile</span>
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleLogout}>
+                <DropdownMenuItem onClick={logoutUser}>
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Log out</span>
                 </DropdownMenuItem>
@@ -176,7 +140,7 @@ function Navbar2() {
                     <span>Profile</span>
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleLogout}>
+                <DropdownMenuItem onClick={logoutUser}>
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Log out</span>
                 </DropdownMenuItem>

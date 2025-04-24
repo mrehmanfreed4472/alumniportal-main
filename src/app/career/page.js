@@ -40,44 +40,29 @@ export default function SearchJob() {
   const [currUser, setCurrUser] = useState('');
 
 
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-
-      let currUser = localStorage.getItem("amsjbckumr")
-      if(currUser){
-        currUser = jwt.verify(currUser, process.env.NEXT_PUBLIC_JWT_SECRET)
-      }
-
-      if (currUser) {
-        setCurrUser(currUser)
-      }
-    }
-  }, [])
-
   const observer = useRef()
 
   const getJobPostUrl = getAllPostsUrl
 
-  async function getPostData() {
-    try {
-      setLoading(true)
-      const res = await axios.post(getJobPostUrl, {
-        params: { page, limit: 10 },
-      })
-      const newJobs = res.data.jobs.map(job => ({ ...job }))
-      setJobs((prevJobs) => [...prevJobs, ...newJobs])
-      setHasMore(false)
-      setLoading(false)
-    } catch (error) {
-      console.log(error)
-      setLoading(false)
-    }
-  }
+  // async function getPostData() {
+  //   try {
+  //     setLoading(true)
+  //     const res = await axios.post(getJobPostUrl, {
+  //       params: { page, limit: 10 },
+  //     })
+  //     const newJobs = res.data.jobs.map(job => ({ ...job }))
+  //     setJobs((prevJobs) => [...prevJobs, ...newJobs])
+  //     setHasMore(false)
+  //     setLoading(false)
+  //   } catch (error) {
+  //     console.log(error)
+  //     setLoading(false)
+  //   }
+  // }
 
-  useEffect(() => {
-    getPostData()
-  }, [page])
+  // useEffect(() => {
+  //   getPostData()
+  // }, [page])
 
   const lastJobRef = useCallback(
     (node) => {

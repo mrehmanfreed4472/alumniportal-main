@@ -53,6 +53,7 @@ import { collegeName } from "@/data/college"
 import axios from "axios"
 import { createStudenthubUrl, getStudenthubUrl } from "@/urls/urls"
 import {formatDistanceToNow} from 'date-fns'
+import { isAuthenticated } from "@/services/checkAuth"
 
 export default function StudentHub() {
   const [selectedProposal, setSelectedProposal] = useState(null)
@@ -220,15 +221,19 @@ export default function StudentHub() {
       fields: ["Project Name", "Funding Amount", "Use of Funds", "Return on Investment"]
     }
   ]
-
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      console.log("User not authenticated, redirecting to login");
+      router.replace("/login");
+      return;
+    }
+  }, [router]);
+  
   const handleSubmit = async (e) => {
     e.preventDefault()
     setIsPosting(true)
     let currUser = {};
-    if(typeof window !== "undefined") {
-        currUser = localStorage.getItem("amsjbckumr")
-        currUser = jwt.verify(currUser, process.env.NEXT_PUBLIC_JWT_SECRET) 
-    }
+
     // console.log({...inputs, type:selectedType, proposedBy: currUser._id, collegeName: currUser.collegeName})
     try {
       await axios.post(createStudenthubUrl, {...inputs, type:selectedType, 
@@ -276,10 +281,10 @@ export default function StudentHub() {
   const getStudenthub = async () => {
     try {
       let currUser = {};
-      if(typeof window !== "undefined") {
-          currUser = localStorage.getItem("amsjbckumr")
-          currUser = jwt.verify(currUser, process.env.NEXT_PUBLIC_JWT_SECRET) 
-      }
+      // if(typeof window !== "undefined") {
+      //     currUser = localStorage.getItem("amsjbckumr")
+      //     currUser = jwt.verify(currUser, process.env.NEXT_PUBLIC_JWT_SECRET) 
+      // }
       const res = await axios.post(getStudenthubUrl, { collegeName: currUser.collegeName} )
       setSubmittedProposals(res.data.studenthub)
     } catch (error) {

@@ -19,8 +19,8 @@ function Page() {
 
   const [error, setError] = useState("");
   const [inputs, setInputs] = useState({
-    email: "mrehman@gmail.com",
-    password: "3456789",
+    email: "ahtisham@gmail.com",
+    password: "abc123",
   });
 
   const [isLoading, setLoading] = useState(false);
@@ -29,7 +29,7 @@ function Page() {
     e.preventDefault();
     setLoading(true);
     setError("");
-  
+
     if (!inputs.email || !inputs.password) {
       toast({
         variant: "red",
@@ -38,48 +38,25 @@ function Page() {
       setLoading(false);
       return;
     }
-  
+
     try {
       const res = await dispatch(handleLoginApi(inputs));
-  
+
       // SAFELY destructure payload
       const loginData = res?.payload;
+      console.log("🚀 ~ handleLogin ~ loginData:", loginData)
       const user = loginData?.data?.User;
       const userID = loginData?.data?.User?._id;
       const status = loginData?.status;
-  
+
       console.log("🚀 ~ User Role:", user);
       console.log("🚀 ~ User ID:", userID);
-  
-      if (status === 200 && user) {
-        // Conditionally fetch user info based on role
-          // ✅ Dispatch setUser here
-  dispatch(
-    setUser({
-      user: user, // or userInfo.payload?.data?.user
-      token: loginData.token || null, // if token exists
-    })
-  );
-        let userInfo;
-  
-        if (user.role === "alumni") {
-          userInfo = await dispatch(getAlumniInfo(userID));
-        } else if (user.role === "student") {
-          userInfo = await dispatch(getStudentInfo(userID));
-        }
-  
-        console.log("✅ User Info:", userInfo);
-  
-        if (userInfo?.payload?.status !== 200) {
-          toast({
-            variant: "destructive",
-            title: "Failed to fetch user info",
-          });
-          setLoading(false);
-          return;
-        }
 
-  
+      if (status === 200 && user) {
+    // ✅ Save to localStorage instead of Redux
+    localStorage.setItem("user", JSON.stringify(user));
+    localStorage.setItem("token", loginData?.data?.token || "");
+
         router.push("/home");
       } else {
         setError("Invalid credentials");
@@ -94,7 +71,7 @@ function Page() {
       setLoading(false);
     }
   };
-   
+
 
   return (
     <div>
