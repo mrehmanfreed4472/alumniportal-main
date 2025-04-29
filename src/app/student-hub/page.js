@@ -54,6 +54,7 @@ import axios from "axios"
 import { createStudenthubUrl, getStudenthubUrl } from "@/urls/urls"
 import {formatDistanceToNow} from 'date-fns'
 import { isAuthenticated } from "@/services/checkAuth"
+import { useRouter } from "next/navigation"
 
 export default function StudentHub() {
   const [selectedProposal, setSelectedProposal] = useState(null)
@@ -62,6 +63,7 @@ export default function StudentHub() {
   const [submittedProposals, setSubmittedProposals] = useState([])
   const [isPosting , setIsPosting] = useState(false)
   const { toast } = useToast()
+  const router = useRouter();
 
   const [selectedType , setSelectedType] = useState("")
   const [inputs, setInputs] = useState({})

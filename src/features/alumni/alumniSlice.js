@@ -21,6 +21,17 @@ export const registerAlumni = createAsyncThunkWrapper(
   }
 );
 
+export const UpdateAlumniProfile = createAsyncThunkWrapper(
+  "Alumni/Update",
+  async (payload) => {
+    console.log("🚀 API Hit Started: Alumni/Update");
+    const response = await client.post("/alumni/profile", payload);
+    console.log("🚀 ~ response:", response)
+    const { data, status } = response || {};
+    return { data, status };
+  }
+);
+
 export const getAlumniList = createAsyncThunkWrapper(
   "alumni/AlumniList",
   async () => {
@@ -38,15 +49,15 @@ const alumniSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(registerAlumni.pending, (state) => {
+      .addCase(UpdateAlumniProfile.pending, (state) => {
         state.loading = true;
       })
-      .addCase(registerAlumni.fulfilled, (state, action) => {
+      .addCase(UpdateAlumniProfile.fulfilled, (state, action) => {
         console.log("🚀 ~ Job Posted:", action);
         state.loading = false;
         state.alumniData = action.payload?.data || {};
       })
-      .addCase(registerAlumni.rejected, (state, action) => {
+      .addCase(UpdateAlumniProfile.rejected, (state, action) => {
         state.loading = false;
         state.error =
           action.error?.message || "An error occurred while posting the job";
