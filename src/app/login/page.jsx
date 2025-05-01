@@ -19,8 +19,8 @@ function Page() {
 
   const [error, setError] = useState("");
   const [inputs, setInputs] = useState({
-    email: "ahtisham@gmail.com",
-    password: "abc123",
+    email: "21ntucs1357@student.ntu.edu.pk",
+    password: "123456",
   });
 
   const [isLoading, setLoading] = useState(false);

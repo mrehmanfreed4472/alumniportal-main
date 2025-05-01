@@ -67,14 +67,14 @@ export default function Component() {
         "Don’t quit. It will happen one day.",
       name: "Dr Muhammad Asif",
       designation: "Deputy Director",
-      src: "/image/alumni4.jpg",
+      src: "/image/profileLogo.png",
     },
     {
       quote:
         "Age doesn't matter if you have the attitude and drive to succeed.",
-      name: "Lt. Gernal. Muhammad Asim Munir",
-      designation: "CEO of Pakistan",
-      src: "/image/alumni5.jpg",
+      name: "Dr Muhammad Asim Munir",
+      designation: "CEO of MTU",
+      src: "/image/profileLogo.png",
     },
     {
       quote:
