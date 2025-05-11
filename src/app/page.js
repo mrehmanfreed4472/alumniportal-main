@@ -67,21 +67,28 @@ export default function Component() {
         "Don’t quit. It will happen one day.",
       name: "Dr Muhammad Asif",
       designation: "Deputy Director",
-      src: "/image/alumni4.jpg",
+      src: "/image/DD3.jpg",
     },
     {
       quote:
         "Age doesn't matter if you have the attitude and drive to succeed.",
-      name: "Lt. Gernal. Muhammad Asim Munir",
-      designation: "CEO of Pakistan",
-      src: "/image/alumni5.jpg",
+      name: "DR Aurangzeb Ahmad",
+      designation: "Assistant Professor",
+      src: "/image/DD1.jpg",
     },
     {
       quote:
         "Life is not about finding yourself. Life is about creating yourself.",
-      name: "Rahmatuallah ",
-      designation: "Assistant Commissioner",
-      src: "/image/alumni3.jpg",
+      name: "Dr Rahmatuallah Khan",
+      designation: "Assistant Professor",
+      src: "/image/DD2.jpeg",
+    },
+       {
+      quote:
+        "Life is not about finding yourself. Life is about creating yourself.",
+      name: "Dr Naveen Khan",
+      designation: "Assistant Professor",
+      src: "/image/DD4.png",
     },
   ];
 
@@ -129,7 +136,7 @@ export default function Component() {
       <main className="container mx-auto flex-1">
         <section
           style={{
-            backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(/image/default_bg.jpeg)`,
+            backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(/image/W1.png)`,
             backgroundSize: "cover",
             backgroundPosition: "top",
             backgroundRepeat: "no-repeat",

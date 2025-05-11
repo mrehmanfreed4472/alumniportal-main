@@ -143,7 +143,7 @@ Venue: NTU Faiasalabad Campus
 
 A walk down memory lane awaits as we honour their incredible journey and achievements.
 #NTU25Years #ClassOf99 #AlumniReunion #ForeveranISMite"
-                image="/image/99.jpg"
+                image="/image/101.png"
               />
               <EventCard
                 title="Tech Symposium"
