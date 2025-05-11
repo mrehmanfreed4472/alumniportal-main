@@ -1,182 +1,177 @@
-"use client"
+"use client";
 
-import jwt from "jsonwebtoken"
-import { useState, useCallback, useEffect } from "react"
-import { Bell, ChevronDown, Layout, LogOut, Menu, MessagesSquare, PieChart, School, Users, DollarSign } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import Link from "next/link"
-import axios from "axios"
-import { useToast } from "@/hooks/use-toast"
-import { getFeedbacksUrl, getAllCollegesUrl, getNonVarifiedCollegesUrl, verifyCollegeUrl, rejectverifyCollegeUrl, blockCollegeUrl ,getAllCollegeCountUrl, getAllStudentsCountUrl, getAllAlumniCountUrl} from "@/urls/urls.js"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { set } from "date-fns"
+import jwt from "jsonwebtoken";
+import { useState, useCallback, useEffect } from "react";
+import {
+  Bell,
+  ChevronDown,
+  Layout,
+  LogOut,
+  Menu,
+  MessagesSquare,
+  PieChart,
+  School,
+  Users,
+  DollarSign,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Link from "next/link";
+import axios from "axios";
+import { useToast } from "@/hooks/use-toast";
+import {
+  getFeedbacksUrl,
+  getAllCollegesUrl,
+  getNonVarifiedCollegesUrl,
+  verifyCollegeUrl,
+  rejectverifyCollegeUrl,
+  blockCollegeUrl,
+  getAllCollegeCountUrl,
+  getAllStudentsCountUrl,
+  getAllAlumniCountUrl,
+} from "@/urls/urls.js";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { set } from "date-fns";
+import { useRouter } from "next/navigation";
+import { useDispatch, useSelector } from "react-redux";
+import { getUser, isAuthenticated } from "@/services/checkAuth";
+import { getAllContactForm } from "@/features/contact/contactSlice";
+import { getAllFeedbacks } from "@/features/feedback/feedbackSlice";
+import { getAlumniList } from "@/features/alumni/alumniSlice";
+import { getStudentList } from "@/features/student/studentSlice";
 
 export default function AdminDashboard() {
-  const { toast } = useToast()
+  const { toast } = useToast();
 
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [isAdmin, setIsAdmin] = useState(true) // Set to true for demonstration
-  const [feedbacks, setFeedbacks] = useState([])
-  const [registerdColleges, setRegisterdColleges] = useState([])
-  const [nonVerifiedColleges, setNonVerifiedColleges] = useState([])
-  const [selectedCollege, setSelectedCollege] = useState(null)
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(true);
+  const [feedbacks, setFeedbacks] = useState([]);
+  const [registerdColleges, setRegisterdColleges] = useState([]);
+  const [selectedCollege, setSelectedCollege] = useState(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const [totalColleges, setTotalColleges] = useState(0)
-  const [totalStudents, setTotalStudents] = useState(0)
-  const [totalAlumni, setTotalAlumni] = useState(0)
+  const router = useRouter();
+  const dispatch = useDispatch();
+  const contactList = useSelector((state) => state?.contact?.contactData);
+  const feedbackList = useSelector((state) => state?.feedback?.feedbackData);
+  const alumniList = useSelector((state) => state?.alumniList?.alumniList);
+  console.log("🚀 ~ AdminDashboard ~ alumniList:", alumniList);
+  const studentList = useSelector((state) => state?.studentList?.studentList);
+  const user = getUser();
 
   const colleges = [
-    { id: 1, name: "Department of Computer Science", plan: "Premium", students: 5000, alumni: 20000, status: "Approved", remainingTime: "11 months", revenue: 50000 },
-    { id: 2, name: "Department of Clothing", plan: "Medium", students: 2000, alumni: 8000, status: "Approved", remainingTime: "5 months", revenue: 20000 },
-    { id: 3, name: "Department of Texile Technology", plan: "Free", students: 1000, alumni: 3000, status: "Pending", remainingTime: "N/A", revenue: 0 },
-    { id: 4, name: "BBA", plan: "Premium", students: 3000, alumni: 15000, status: "Approved", remainingTime: "8 months", revenue: 50000 },
-    { id: 5, name: "Applied Sciences", plan: "Medium", students: 4000, alumni: 18000, status: "Pending", remainingTime: "N/A", revenue: 0 },
-  ]
-
-  const totalRevenue = colleges.reduce((sum, college) => sum + college.revenue, 0)
-
-  const handleViewDetails = (college) => {
-    setSelectedCollege(college)
-    setIsDialogOpen(true)
-  }
-
-  const getCollegeCount= async () => {
-    try {
-      // Simulate API call
-      setTotalColleges(5) // Hardcoded for demonstration
-    } catch (error) {
-      console.error('Error:', error)
-    }
-  }
-
-  const getAllAlumniCount = async () => {
-    try {
-      // Simulate API call
-      setTotalAlumni(10000) // Hardcoded for demonstration
-    } catch (error) {
-      console.error('Error:', error)
-    }
-  }
-
-  const getAllStudentCount = async () => {
-    try {
-      // Simulate API call
-      setTotalStudents(50000) // Hardcoded for demonstration
-    } catch (error) {
-      console.error('Error:', error)
-    }
-  }
-
-  const getAllFeedbacks = async () => {
-    try {
-      // Simulate API call
-      setFeedbacks([
-        { _id: 1, name: "John Doe", email: "john@example.com", feedback: "Great platform!" },
-        { _id: 2, name: "Jane Smith", email: "jane@example.com", feedback: "Needs more features." },
-      ]) // Hardcoded for demonstration
-    } catch (error) {
-      console.error('Error:', error)
-    }
-  }
-
-  const getAllregisteredColleges = async () => {
-    try {
-      // Simulate API call
-      setRegisterdColleges(colleges) // Hardcoded for demonstration
-    } catch (error) {
-      console.log(error)
-      toast({
-        description: "error",
-        variant: "red",
-      })
-    }
-  }
-
-  const getNonVerifiedColleges = async () => {
-    try {
-      // Simulate API call
-      setNonVerifiedColleges(colleges.filter(college => college.status === "Pending")) // Hardcoded for demonstration
-    } catch (error) {
-      console.log(error)
-      toast({
-        description: "error",
-        variant: "red",
-      })
-    }
-  }
-
-  const handleVerifyCollege = async (collegeId) => {
-    try {
-      // Simulate API call
-      toast({
-        description: "college verified",
-        variant: "green",
-      })
-    } catch (error) {
-      console.error('Error:', error)
-    }
-  }
-
-  const handleRejectCollege = async (collegeId) => {
-    try {
-      // Simulate API call
-      toast({
-        description: "college rejected",
-        variant: "green",
-      })
-    } catch (error) {
-      console.error('Error:', error)
-    }
-  }
-
-  const handleBlockCollege = async (collegeId) => {
-    try {
-      // Simulate API call
-      toast({
-        description: "college blocked",
-        variant: "green",
-      })
-    } catch (error) {
-      console.error('Error:', error)
-    }
-  }
+    {
+      id: 1,
+      name: "Department of Computer Science",
+      plan: "Premium",
+      students: 5000,
+      alumni: 20000,
+      status: "Approved",
+      remainingTime: "11 months",
+      revenue: 50000,
+    },
+    {
+      id: 2,
+      name: "Department of Clothing",
+      plan: "Medium",
+      students: 2000,
+      alumni: 8000,
+      status: "Approved",
+      remainingTime: "5 months",
+      revenue: 20000,
+    },
+    {
+      id: 3,
+      name: "Department of Texile Technology",
+      plan: "Free",
+      students: 1000,
+      alumni: 3000,
+      status: "Pending",
+      remainingTime: "N/A",
+      revenue: 0,
+    },
+    {
+      id: 4,
+      name: "BBA",
+      plan: "Premium",
+      students: 3000,
+      alumni: 15000,
+      status: "Approved",
+      remainingTime: "8 months",
+      revenue: 50000,
+    },
+    {
+      id: 5,
+      name: "Applied Sciences",
+      plan: "Medium",
+      students: 4000,
+      alumni: 18000,
+      status: "Pending",
+      remainingTime: "N/A",
+      revenue: 0,
+    },
+  ];
 
   useEffect(() => {
-    getAllregisteredColleges()
-    getNonVerifiedColleges()
-    getAllFeedbacks()
-    getCollegeCount()
-    getAllAlumniCount()
-    getAllStudentCount()
-  }, [])
+    const auth = isAuthenticated();
+    if (auth || user.role !== "admin") {
+      console.log("User not authenticated, redirecting to login");
+      router.replace("/login");
+      return;
+    }
+  }, [router]);
 
-  // Commented out authentication check
-  // useEffect(() => {
-  //   let currUser;
-  //   if (typeof window !== undefined) {
-  //     currUser = localStorage.getItem("amsjbckumr")
-  //     currUser = jwt.verify(currUser, process.env.NEXT_PUBLIC_JWT_SECRET)
-  //   }
-  //  if (currUser.role === "admin") {
-  //     setIsAdmin(true)
-  //   } else {
-  //     setIsAdmin(false)
-  //   }
-  // }, [])
+  useEffect(() => {
+    dispatch(getAllContactForm());
+    dispatch(getAllFeedbacks());
+    dispatch(getAlumniList());
+    dispatch(getStudentList());
+  }, [dispatch]);
 
-  // if (!isAdmin) {
-  //   return (
-  //     <div>
-  //       <h1>Unauthorized</h1>
-  //     </div>
-  //   )
-  // }
+  function filterTable(e, tableId) {
+    const filter = e.target.value.toLowerCase();
+    const table = document.getElementById(tableId);
+    const rows = table?.getElementsByTagName("tr");
+
+    if (!rows) return;
+
+    for (let i = 1; i < rows.length; i++) {
+      const cells = rows[i].getElementsByTagName("td");
+      let match = false;
+
+      for (let j = 0; j < cells.length; j++) {
+        const text = cells[j]?.textContent || cells[j]?.innerText;
+        if (text.toLowerCase().includes(filter)) {
+          match = true;
+          break;
+        }
+      }
+
+      rows[i].style.display = match ? "" : "none";
+    }
+  }
 
   return (
     <>
@@ -188,18 +183,30 @@ export default function AdminDashboard() {
                 <nav className="flex flex-col h-full">
                   <div className="flex items-center justify-between p-4 border-b">
                     <h1 className="text-2xl font-bold">AMS</h1>
-                    <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setSidebarOpen(false)}
+                    >
                       <Menu />
                     </Button>
                   </div>
                   <div className="flex-1 px-4 py-6 space-y-4">
-                    <Button variant="ghost" className="w-full justify-start" asChild>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start"
+                      asChild
+                    >
                       <Link href="/">
                         <Layout className="mr-2 h-4 w-4" />
                         Dashboard
                       </Link>
                     </Button>
-                    <Button variant="ghost" className="w-full justify-start" asChild>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start"
+                      asChild
+                    >
                       <Link href="/analytics">
                         <PieChart className="mr-2 h-4 w-4" />
                         Analytics
@@ -219,7 +226,10 @@ export default function AdminDashboard() {
                     </Button>
                   </div>
                   <div className="p-4 border-t">
-                    <Button variant="ghost" className="w-full justify-start text-red-500">
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start text-red-500"
+                    >
                       <LogOut className="mr-2 h-4 w-4" />
                       Logout
                     </Button>
@@ -233,52 +243,79 @@ export default function AdminDashboard() {
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Total Colleges</CardTitle>
+                      <CardTitle className="text-sm font-medium">
+                        Total Colleges
+                      </CardTitle>
                       <School className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold">{totalColleges}</div>
-                      <p className="text-xs text-muted-foreground">+2 from last month</p>
+                      <div className="text-2xl font-bold">1</div>
+                      <p className="text-xs text-muted-foreground">
+                        +1 from last month
+                      </p>
                     </CardContent>
                   </Card>
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Total Students</CardTitle>
+                      <CardTitle className="text-sm font-medium">
+                        Total Students
+                      </CardTitle>
                       <Users className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold">{totalStudents}</div>
-                      <p className="text-xs text-muted-foreground">+5% from last month</p>
+                      <div className="text-2xl font-bold">
+                        {studentList?.totalStudents}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        +5% from last month
+                      </p>
                     </CardContent>
                   </Card>
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Total Alumni</CardTitle>
+                      <CardTitle className="text-sm font-medium">
+                        Total Alumni
+                      </CardTitle>
                       <Users className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold">{totalAlumni}</div>
-                      <p className="text-xs text-muted-foreground">+2% from last month</p>
+                      <div className="text-2xl font-bold">
+                        {alumniList?.totalAlumni}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        +2% from last month
+                      </p>
                     </CardContent>
                   </Card>
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Active Users</CardTitle>
+                      <CardTitle className="text-sm font-medium">
+                        Active Users
+                      </CardTitle>
                       <Users className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold">50,000</div>
-                      <p className="text-xs text-muted-foreground">+10% from last month</p>
+                      <div className="text-2xl font-bold">
+                        {studentList?.totalStudents + alumniList?.totalAlumni ||
+                          "Total"}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        +10% from last month
+                      </p>
                     </CardContent>
                   </Card>
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+                      <CardTitle className="text-sm font-medium">
+                        Total Revenue
+                      </CardTitle>
                       <DollarSign className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold">${totalRevenue.toLocaleString()}</div>
-                      <p className="text-xs text-muted-foreground">From all Departments plans</p>
+                      <div className="text-2xl font-bold">Coming Soon</div>
+                      <p className="text-xs text-muted-foreground">
+                        From all Departments plans
+                      </p>
                     </CardContent>
                   </Card>
                 </div>
@@ -286,14 +323,18 @@ export default function AdminDashboard() {
                 <Tabs defaultValue="colleges" className="mt-6">
                   <TabsList>
                     <TabsTrigger value="colleges">Departments</TabsTrigger>
-                    <TabsTrigger value="approval">Approval Panel</TabsTrigger>
+                    <TabsTrigger value="students">All Students</TabsTrigger>
+                    <TabsTrigger value="alumni">Alumni List</TabsTrigger>
                     <TabsTrigger value="feedback">User Feedback</TabsTrigger>
+                    <TabsTrigger value="inqueries">User inquiries</TabsTrigger>
                   </TabsList>
                   <TabsContent value="colleges">
                     <Card>
                       <CardHeader>
                         <CardTitle>Registered Department</CardTitle>
-                        <CardDescription>Manage Department and their subscription plans.</CardDescription>
+                        <CardDescription>
+                          Manage Department and their subscription plans.
+                        </CardDescription>
                       </CardHeader>
                       <CardContent>
                         <Table>
@@ -311,18 +352,33 @@ export default function AdminDashboard() {
                           <TableBody>
                             {registerdColleges?.map((college) => (
                               <TableRow key={college.id}>
-                                <TableCell className="font-medium">{college.name}</TableCell>
+                                <TableCell className="font-medium">
+                                  {college.name}
+                                </TableCell>
                                 <TableCell>{college?.plan}</TableCell>
-                                <TableCell>{college?.students?.toLocaleString()}</TableCell>
-                                <TableCell>{college?.alumni?.toLocaleString()}</TableCell>
                                 <TableCell>
-                                  <span className={`px-2 py-1 rounded-full text-xs ${college?.status === "Approved" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"
-                                    }`}>
-                                    {college.status === "Approved" ? "Verified" : "Pending"}
+                                  {college?.students?.toLocaleString()}
+                                </TableCell>
+                                <TableCell>
+                                  {college?.alumni?.toLocaleString()}
+                                </TableCell>
+                                <TableCell>
+                                  <span
+                                    className={`px-2 py-1 rounded-full text-xs ${
+                                      college?.status === "Approved"
+                                        ? "bg-green-100 text-green-800"
+                                        : "bg-yellow-100 text-yellow-800"
+                                    }`}
+                                  >
+                                    {college.status === "Approved"
+                                      ? "Verified"
+                                      : "Pending"}
                                   </span>
                                 </TableCell>
                                 <TableCell>{college?.remainingTime}</TableCell>
-                                <TableCell>${college?.revenue?.toLocaleString()}</TableCell>
+                                <TableCell>
+                                  ${college?.revenue?.toLocaleString()}
+                                </TableCell>
                               </TableRow>
                             ))}
                           </TableBody>
@@ -330,12 +386,25 @@ export default function AdminDashboard() {
                       </CardContent>
                     </Card>
                   </TabsContent>
-                  <TabsContent value="approval">
+                  <TabsContent value="students" id="studentsTable">
                     <Card>
                       <CardHeader>
-                        <CardTitle>Department Approval Panel</CardTitle>
-                        <CardDescription>Review and approve new Department registrations.</CardDescription>
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                          <div>
+                            <CardTitle>All Students</CardTitle>
+                            <CardDescription>
+                              All Students From Every Department
+                            </CardDescription>
+                          </div>
+                          <input
+                            type="text"
+                            placeholder="Search..."
+                            className="p-2 border border-gray-300 rounded-md w-full sm:w-64"
+                            onKeyUp={(e) => filterTable(e, "studentsTable")}
+                          />
+                        </div>
                       </CardHeader>
+
                       <CardContent>
                         <Table>
                           <TableHeader>
@@ -347,20 +416,14 @@ export default function AdminDashboard() {
                             </TableRow>
                           </TableHeader>
                           <TableBody>
-                            {nonVerifiedColleges?.map((college) => (
-                              <TableRow key={college.id}>
-                                <TableCell className="font-medium">{college?.name}</TableCell>
-                                <TableCell>{college?.plan}</TableCell>
-                                <TableCell>
-                                  <Button size="sm" variant="outline" onClick={() => handleViewDetails(college)}>
-                                    View Details
-                                  </Button>
+                            {studentList?.students?.map((student) => (
+                              <TableRow key={student?.id?._id}>
+                                <TableCell className="font-medium">
+                                  {student?.name}
                                 </TableCell>
-                                <TableCell className="flex gap-2">
-                                  <Button onClick={() => handleVerifyCollege(college.id)} size="sm" className="mr-2">Approve</Button>
-                                  <Button disabled={college?.isBlocked} className='bg-yellow-600 text-white hover:bg-yellow-500/70 hover:text-white' onClick={() => handleBlockCollege(college.id)} size="sm" variant="outline">{college?.isBlocked ? "Blocked" : "Block"} </Button>
-                                  <Button className=' mx-2 bg-red-500 text-white  hover:bg-red-500/70 hover:text-white' onClick={() => handleRejectCollege(college.id)} size="sm" variant="outline">Reject</Button>
-                                </TableCell>
+                                <TableCell>{student?.batch}</TableCell>
+                                <TableCell>{student?.degree}</TableCell>
+                                <TableCell>{student?.university}</TableCell>
                               </TableRow>
                             ))}
                           </TableBody>
@@ -368,22 +431,124 @@ export default function AdminDashboard() {
                       </CardContent>
                     </Card>
                   </TabsContent>
+
+                  <TabsContent value="alumni" id="alumniTable">
+                    <Card>
+                      <CardHeader>
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                          <div>
+                            <CardTitle>Alumni List</CardTitle>
+                            <CardDescription>
+                              Alumni From all Departments are Here!
+                            </CardDescription>
+                          </div>
+                          <input
+                            type="text"
+                            placeholder="Search..."
+                            className="p-2 border border-gray-300 rounded-md w-full sm:w-64"
+                            onKeyUp={(e) => filterTable(e, "alumniTable")}
+                          />
+                        </div>
+                      </CardHeader>
+
+                      <CardContent>
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Name</TableHead>
+                              <TableHead>Batch</TableHead>
+                              <TableHead>Job Title</TableHead>
+                              <TableHead>Company Name</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {alumniList?.alumni?.map((alumni) => (
+                              <TableRow key={alumni?.id?._id}>
+                                <TableCell className="font-medium">
+                                  {alumni?.name}
+                                </TableCell>
+                                <TableCell>{alumni?.batch}</TableCell>
+                                <TableCell>{alumni?.jobTitle}</TableCell>
+                                <TableCell>{alumni?.companyName}</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+
                   <TabsContent value="feedback">
                     <Card>
                       <CardHeader>
                         <CardTitle>User Feedback</CardTitle>
-                        <CardDescription>Recent feedback from AMS users.</CardDescription>
+                        <CardDescription>
+                          Recent feedback from AMS users.
+                        </CardDescription>
                       </CardHeader>
                       <CardContent>
                         <ScrollArea className="h-[400px]">
-                          {feedbacks?.map((feedback) => (
-                            <div key={feedback._id} className="mb-4 p-4 bg-gray-50 rounded-lg">
+                          {feedbackList?.map((feedback) => (
+                            <div
+                              key={feedback._id}
+                              className="mb-4 p-4 bg-gray-50 rounded-lg"
+                            >
                               <div className="flex items-center mb-2">
-                                <h3 className="font-semibold">{feedback.name}</h3>
-                                <p className="text-sm text-gray-600">({feedback.email})</p>
+                                <h3 className="font-semibold">
+                                  {feedback?.name}
+                                </h3>
+                                <p className="text-sm text-gray-600">
+                                  ({feedback?.email})
+                                </p>
                               </div>
+                              <p className="text-sm text-gray-600">
+                                Garduation Year:
+                                <b>({feedback?.graduationYear})</b>
+                              </p>
+                              <p className="text-sm text-gray-600">
+                                Rating In Stars: <b>{feedback?.rating}</b>
+                              </p>
                               <hr />
-                              <p className="text-sm text-gray-600 py-2">{feedback.feedback}</p>
+                              <p className="text-sm text-gray-600 py-2">
+                                {feedback?.review}
+                              </p>
+                            </div>
+                          ))}
+                        </ScrollArea>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+
+                  <TabsContent value="inqueries">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>User inqueries</CardTitle>
+                        <CardDescription>
+                          Recent inqueries from AMS users.
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <ScrollArea className="h-[400px]">
+                          {contactList?.map((inquiry) => (
+                            <div
+                              key={inquiry._id}
+                              className="mb-4 p-4 bg-gray-50 rounded-lg"
+                            >
+                              <div className="flex items-center mb-2">
+                                <h3 className="font-semibold">
+                                  {inquiry?.firstName}
+                                </h3>
+                                <p className="text-sm text-gray-600">
+                                  ({inquiry?.email})
+                                </p>
+                              </div>
+                              <p className="text-sm text-gray-600">
+                                Inquiry Type:({inquiry?.inquiryType})
+                              </p>
+                              <hr />
+                              <p className="text-sm text-gray-600 py-2">
+                                {inquiry?.message}
+                              </p>
                             </div>
                           ))}
                         </ScrollArea>
@@ -419,7 +584,9 @@ export default function AdminDashboard() {
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                   <span className="font-medium">linkedin:</span>
-                  <span className="col-span-3">{selectedCollege?.linkedin}</span>
+                  <span className="col-span-3">
+                    {selectedCollege?.linkedin}
+                  </span>
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                   <span className="font-medium">Contact No:</span>
@@ -428,10 +595,24 @@ export default function AdminDashboard() {
                 <div className="grid grid-cols-4 items-center gap-4">
                   <span className="font-medium">Status:</span>
                   <span className="col-span-3">
-                    <span className={`px-2 py-1 rounded-full text-xs ${selectedCollege?.status === "Approved" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}`}>
-                      {selectedCollege?.status === "Approved" ? "Verified" : "Pending"}
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs ${
+                        selectedCollege?.status === "Approved"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-yellow-100 text-yellow-800"
+                      }`}
+                    >
+                      {selectedCollege?.status === "Approved"
+                        ? "Verified"
+                        : "Pending"}
                     </span>
-                    <span className={`px-2 py-1 rounded-full mx-2 text-xs ${selectedCollege?.isBlocked ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"}`}>
+                    <span
+                      className={`px-2 py-1 rounded-full mx-2 text-xs ${
+                        selectedCollege?.isBlocked
+                          ? "bg-red-100 text-red-800"
+                          : "bg-green-100 text-green-800"
+                      }`}
+                    >
                       {selectedCollege?.isBlocked ? "Blocked" : "Active"}
                     </span>
                   </span>
@@ -439,13 +620,17 @@ export default function AdminDashboard() {
                 {selectedCollege?.remainingTime && (
                   <div className="grid grid-cols-4 items-center gap-4">
                     <span className="font-medium">Remaining Time:</span>
-                    <span className="col-span-3">{selectedCollege?.remainingTime}</span>
+                    <span className="col-span-3">
+                      {selectedCollege?.remainingTime}
+                    </span>
                   </div>
                 )}
                 {selectedCollege?.revenue && (
                   <div className="grid grid-cols-4 items-center gap-4">
                     <span className="font-medium">Revenue:</span>
-                    <span className="col-span-3">${selectedCollege?.revenue?.toLocaleString()}</span>
+                    <span className="col-span-3">
+                      ${selectedCollege?.revenue?.toLocaleString()}
+                    </span>
                   </div>
                 )}
               </div>
@@ -454,5 +639,5 @@ export default function AdminDashboard() {
         </>
       )}
     </>
-  )
+  );
 }

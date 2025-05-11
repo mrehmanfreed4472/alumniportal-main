@@ -1,12 +1,11 @@
 'use client'
 import React, { useState } from 'react';
-import axios from 'axios';
 import Navbar2 from '@/components/header/Navbar2';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { useDispatch, useSelector } from "react-redux";
-import { PostJobApi } from "@/features/jobPost/PostJobSlice";
+import { getAllJobs, PostJobApi } from "@/features/jobPost/PostJobSlice";
 
 export default function ContactPageOne() {
   const router = useRouter();
@@ -47,7 +46,6 @@ export default function ContactPageOne() {
     try {
       const formData = new FormData();
       formData.append("thumbnail", thumbnail);
-      // formData.append("postedByName", userData?.name || "Anonymous");
       formData.append("title", input.title);
       formData.append("description", input.description);
       formData.append("category", input.category);
@@ -64,6 +62,7 @@ export default function ContactPageOne() {
 
       setThumbnail(null);
       setmsg("");
+          dispatch(getAllJobs());
       toast({
         variant: "green",
         title: "Job Posted Successfully",

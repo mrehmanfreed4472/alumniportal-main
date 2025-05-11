@@ -56,8 +56,10 @@ function Page() {
     // ✅ Save to localStorage instead of Redux
     localStorage.setItem("user", JSON.stringify(user));
     localStorage.setItem("token", loginData?.data?.token || "");
-
-        router.push("/home");
+        if(user?.role === 'admin'){
+          router.push("/admin");
+        }else{router.push("/home");}
+        
       } else {
         setError("Invalid credentials");
       }
@@ -115,12 +117,12 @@ function Page() {
                   <label className="text-base font-medium text-gray-900">
                     Password
                   </label>
-                  <Link
+                  {/* <Link
                     href="/login/reset-password"
                     className="text-sm text-gray-600 hover:underline"
                   >
                     Forgot Password?
-                  </Link>
+                  </Link> */}
                 </div>
                 <div className="mt-2">
                   <input

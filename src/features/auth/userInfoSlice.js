@@ -5,9 +5,21 @@ import { createAsyncThunkWrapper } from "@/redux/wrapper/createAsyncThunkWrapper
 
 const initialState = {
     userData : {},
+    alumniData : {},
     loading: false,
     error: null,
 }
+
+export const getAlumniData=createAsyncThunkWrapper(
+  "auth/getAlumniById",
+  async(alumniID)=>{
+    const response= await client.get(`alumni/profile/${alumniID}`)
+    console.log("🚀 ~ async ~ response:", response)
+   
+    const {data,status}=response || {};
+    return {data,status};
+  }
+)
 
 export const getAlumniInfo=createAsyncThunkWrapper(
     "auth/AlumniInfo",
@@ -37,6 +49,20 @@ export const getAlumniInfo=createAsyncThunkWrapper(
     reducers: {},
     extraReducers: (builder) => {
       builder
+      .addCase(getAlumniData.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(getAlumniData.fulfilled, (state, action) => {
+        console.log("🚀 ~ .addCase ~ actionuserInfo:", action)
+        state.loading = false;
+        state.alumniData = action.payload?.data || {};
+      })
+      .addCase(getAlumniData.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error?.message || "An error occurred";
+      })
+
+      //get Alumni Info
         .addCase(getAlumniInfo.pending, (state) => {
           state.loading = true;
         })
@@ -50,6 +76,7 @@ export const getAlumniInfo=createAsyncThunkWrapper(
           state.error = action.error?.message || "An error occurred";
         })
 
+        //Get Student Info
         .addCase(getStudentInfo.pending, (state) => {
             state.loading = true;
           })

@@ -67,14 +67,14 @@ export default function Component() {
         "Don’t quit. It will happen one day.",
       name: "Dr Muhammad Asif",
       designation: "Deputy Director",
-      src: "/image/profileLogo.png",
+      src: "/image/alumni4.jpg",
     },
     {
       quote:
         "Age doesn't matter if you have the attitude and drive to succeed.",
-      name: "Dr Muhammad Asim Munir",
-      designation: "CEO of MTU",
-      src: "/image/profileLogo.png",
+      name: "Lt. Gernal. Muhammad Asim Munir",
+      designation: "CEO of Pakistan",
+      src: "/image/alumni5.jpg",
     },
     {
       quote:
@@ -124,54 +124,58 @@ export default function Component() {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
-    {userData ? (<Navbar2></Navbar2>):( <NavForSlash />)}
-   
+      {userData ? <Navbar2></Navbar2> : <NavForSlash />}
+
       <main className="container mx-auto flex-1">
-        <section style={{
+        <section
+          style={{
             backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(/image/default_bg.jpeg)`,
             backgroundSize: "cover",
-            backgroundPosition: 'top',
+            backgroundPosition: "top",
             backgroundRepeat: "no-repeat",
-            backgroundBlendMode: "multiply"
-          }} className="w-full py-12 md:py-24 lg:py-32 bg-gradient-to-r from-[#A51C30] to-[#D43F56] text-white">
+            backgroundBlendMode: "multiply",
+          }}
+          className="w-full py-12 md:py-24 lg:py-32 bg-gradient-to-r from-[#A51C30] to-[#D43F56] text-white"
+        >
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center space-y-4 text-center">
               <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none">
                 Welcome to the AMS
               </h1>
               <p className="mx-auto max-w-[700px] text-lg md:text-xl text-zinc-200">
-                Connect with fellow alumni, stay up-to-date on campus news, and get involved in our community.
+                Connect with fellow alumni, stay up-to-date on campus news, and
+                get involved in our community.
               </p>
               {userData ? (
-            <></>    ):(
-                  <div>
-             
-             <Button
-               onClick={() => { router.push('/registration'); }}
-               className="bg-white text-[#A51C30] hover:bg-zinc-100 text-sm lg:text-lg px-4 lg:px-6 py-2 lg:py-3"
-             >
-               Join Now
-             </Button>
-             <Button
-               onClick={handleLogin}
-               className="bg-white text-[#A51C30] hover:bg-zinc-100 mx-2 text-sm lg:text-lg px-4 lg:px-6 py-2 lg:py-3"
-             >
-               Login
-             </Button>
-           </div>
-)}
-
-
-              
+                <></>
+              ) : (
+                <div>
+                  <Button
+                    onClick={() => {
+                      router.push("/registration");
+                    }}
+                    className="bg-white text-[#A51C30] hover:bg-zinc-100 text-sm lg:text-lg px-4 lg:px-6 py-2 lg:py-3"
+                  >
+                    Join Now
+                  </Button>
+                  <Button
+                    onClick={handleLogin}
+                    className="bg-white text-[#A51C30] hover:bg-zinc-100 mx-2 text-sm lg:text-lg px-4 lg:px-6 py-2 lg:py-3"
+                  >
+                    Login
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </section>
         <section id="about" className="w-full py-7 md:py-12 lg:py-16">
           <div className="container px-4 md:px-6">
             <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-center mb-8">
-          <Link href="/about"><span className="text-[#A51C30]"> About </span>
-            </Link>  
-               AMS
+              <Link href="/about">
+                <span className="text-[#A51C30]"> About </span>
+              </Link>
+              AMS
             </h2>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
               <FeatureCard
@@ -231,12 +235,14 @@ export default function Component() {
         </section>
 
         <section id="alumni" className="w-full py-7 md:py-12 lg:py-16 bg-z">
-        <div className="container px-4 md:px-6">
-        <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-center md:mb-6 -mb-8">
+          <div className="container px-4 md:px-6">
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-center md:mb-6 -mb-8">
               Featured Alumni
-            </h2><AnimatedTestimonials testimonials={testimonials} /></div>
-        
-          { /*<div className="container px-4 md:px-6">
+            </h2>
+            <AnimatedTestimonials testimonials={testimonials} />
+          </div>
+
+          {/*<div className="container px-4 md:px-6">
             <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-center mb-8">
               Featured Alumni
             </h2>
@@ -287,26 +293,38 @@ export default function Component() {
           </div>
         </section> */}
         <Testimonial />
-        <section id="reviews" className="w-full py-12 md:py-24 lg:py-32 bg-gray-100">
-  <div className="container px-4 md:px-6">
-    <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-center mb-8">
-      Share Your Feedback
-    </h2>
-    <div className="max-w-md mx-auto">
-      <p className="text-center mb-4">
-        Your feedback helps us improve! Share your experience and let us know how we can make our web app even better.
-      </p>
-      <ContactForm />
-    </div>
-  </div>
-</section>
+        <section
+          id="reviews"
+          className="w-full py-12 md:py-24 lg:py-32 bg-gray-100"
+        >
+          <div className="container px-4 md:px-6">
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-center mb-8">
+              Share Your Feedback
+            </h2>
+            <div className="max-w-md mx-auto">
+              <p className="text-center mb-4">
+                Your feedback helps us improve! Share your experience and let us
+                know how we can make our web app even better.
+              </p>
+              <div className="flex justify-center items-center">
+                <Link href={'/review'} >
+                <Button
+                  className="hidden md:inline-flex lg:text-lg px-4 lg:px-6 py-2 lg:py-3 bg-[#A51C30]"
+                  size="lg"
+                >
+                  Share FeedBack
+                </Button>
+                </Link>
+              </div>
 
+            </div>
+          </div>
+        </section>
       </main>
 
       <Footer />
-
     </div>
-  )
+  );
 }
 
 function EventCard({ title, date, description, image }) {

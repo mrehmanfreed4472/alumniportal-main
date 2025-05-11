@@ -179,17 +179,17 @@ export default function AboutPage() {
               </p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div className="flex flex-col items-center text-center">
-                  <Mail className="h-8 w-8 text-blue-600 mb-4" />
+                  <Mail className="h-8 w-8 text-[#A51C30] mb-4" />
                   <h3 className="text-lg font-semibold mb-2">Email Us</h3>
                   <p className="text-gray-600">contact@ntuams.in</p>
                 </div>
                 <div className="flex flex-col items-center text-center">
-                  <Phone className="h-8 w-8 text-blue-600 mb-4" />
+                  <Phone className="h-8 w-8 text-[#A51C30] mb-4" />
                   <h3 className="text-lg font-semibold mb-2">Call Us</h3>
                   <p className="text-gray-600">+92 300 1234567</p>
                 </div>
                 <div className="flex flex-col items-center text-center">
-                  <MapPin className="h-8 w-8 text-blue-600 mb-4" />
+                  <MapPin className="h-8 w-8 text-[#A51C30] mb-4" />
                   <h3 className="text-lg font-semibold mb-2">Visit Us</h3>
                   <p className="text-gray-600">123 Tech Street, Faisalabad, 12345</p>
                 </div>
@@ -200,7 +200,7 @@ export default function AboutPage() {
 
         <section className="text-center">
           <Link href="/">
-          <Button size="lg" className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-lg px-8 py-3 rounded-full hover:shadow-lg transition-shadow duration-300">
+          <Button size="lg" className="bg-gradient-to-br from-[#A51C30] to-[#C24C5E] text-white text-lg px-8 py-3 rounded-full hover:shadow-lg transition-shadow duration-300">
             Join AMS Today <ArrowRight className="ml-2" />
           </Button>
           </Link>

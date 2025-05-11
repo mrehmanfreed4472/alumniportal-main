@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Dialog } from '@headlessui/react';
 import Link from 'next/link';
 import ProfileDisplay from '@/components/profile/profile';
-import { isAuthenticated } from '@/services/checkAuth';
+import { getUser, isAuthenticated } from '@/services/checkAuth';
 import { Alert } from '@/components/ui/alert';
 import { Title } from '@radix-ui/react-dialog';
 import { useToast } from '@/hooks/use-toast';
@@ -21,25 +21,19 @@ export default function ProfilePage() {
   const profileIsIncomplete = (userData) => {
     return !user?.name || !user?.email; // Add more required fields if needed
   };
+const user = getUser();
+useEffect(() => {
+  if (!isAuthenticated()) {
+    router.replace('/login');
+    return;
+  }
 
-  useEffect(() => {
-    if (!isAuthenticated()) {
-      router.replace('/login');
-      return;
-    }
+  // Redirect if userData is missing or empty
+  if (!userData || Object.keys(userData).length === 0) {
+    router.replace('/login');
+  }
+}, [userData, user?.role, router]);
 
-    // Handle modal visibility after loading completes
-    if (!isLoading) {
-      // const shouldShowModal = !userData || profileIsIncomplete(userData);
-      // setShowModal(shouldShowModal);
-      toast({
-        title: 'Profile Required',
-        description: 'To access all features, please complete your profile.',
-        variant: 'destructive',
-      });
-      router.replace('/profile/complete-profile');
-    }
-  }, [userData, isLoading, router, toast]);
 
   if (isLoading) {
     return (

@@ -1,171 +1,180 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Plus, Pencil, ArrowRight, User, Mail, Briefcase, Building, MapPin, Phone, Linkedin, Github, X } from "lucide-react"
-import axios from 'axios'
-import Link from 'next/link'
-import { useSelector, useDispatch } from "react-redux"
+import { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
+// UI Components
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 
-// importing urls and services
-import { getUserInfoUrl, updateUserProfileUrl, deleteAssetUrl } from "@/urls/urls.js"
-import useCloudinaryImageUploader from "@/services/cloudinary"
-import { useToast } from "@/hooks/use-toast"
+// Icons
+import { 
+  User, Mail, MapPin, Phone, Linkedin, Github, Pencil, X, Plus, ArrowRight 
+} from 'lucide-react';
 
-// Import data arrays
-import { collegeName } from '@/data/college'
-import { branch } from '@/data/branch'
-import { batch } from '@/data/batch'
-import Navbar2 from "@/components/header/Navbar2"
-import { UpdateAlumniProfile } from "@/features/alumni/alumniSlice"
+import Link from 'next/link';
+import Navbar2 from '@/components/header/Navbar2';
+import { registerStudent } from '@/features/student/studentSlice';
+import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 
-export default function ProfileForm() {
-  const dispatch = useDispatch()
-  const { toast } = useToast()
-  const userData = useSelector((state) => state?.userInfo?.userData)
-  
-  const {
-    previewUrl,
-    uploading,
-    handleImageChange,
-    uploadImage
-  } = useCloudinaryImageUploader()
-
-  const [isOpen, setIsOpen] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  
-  // Form state management
+export default function CreateProfilePage () {
+  const dispatch = useDispatch();
+    const { toast } = useToast()
+  const { loading: isLoading } = useSelector((state) => state?.userInfo?.userData);
+  // const userData = useSelector((state) => state?.userInfo?.userData)
+  const userData = '';
+  // Image upload state
+  const [isOpen, setIsOpen] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
+  const router = useRouter();
+  // Form data state
   const [formData, setFormData] = useState({
-    userId: "",
-    name: "",
-    email: "",
-    profileImage: "",
-    collegeName: "",
-    branch: "",
-    batch: "",
-    about: "",
-    location: "",
-    contactNumber: "",
-    linkedin: "",
-    github: "",
-    skills: [],
-    experiences: [],
-    education: []
-  })
+    name:'',
+    email:  '',
+    contactNumber:  '',
+    location:  '',
+    collegeName:  '',
+    branch: '',
+    batch: '',
+    about: '',
+    linkedin:  '',
+    github: '',
+    skills:  [],
+    education:  [],
+    projects:  []
+  });
 
-  // New entries forms
+    const [newPro, setNewPro] = useState({
+      title: '',
+      description: '',
+      role: ''
+    });
+  // New education entry state
+  const [newEdu, setNewEdu] = useState({
+    collegeName: '',
+    course: '',
+    branch: '',
+    startDate: '',
+    endDate: ''
+  });
+
+  // New experience entry state
   const [newExperience, setNewExperience] = useState({
     company: '',
     position: '',
     startDate: '',
     endDate: '',
     description: ''
-  })
+  });
+
+  // Mock data for dropdowns
+  const collegeName = ['MIT', 'Stanford', 'Harvard', 'Caltech', 'Other'];
+  const branch = ['Computer Science', 'Electronics', 'Mechanical', 'Civil', 'Other'];
+  const batch = ['2020', '2021', '2022', '2023', '2024', '2025', '2026'];
+
+  // Handle form input changes
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value
+    });
+  };
+  const handleProChange = (e) => {
+    const { name, value } = e.target;
+    setNewPro({
+      ...newPro,
+      [name]: value
+    });
+  };
+  // Handle select changes
+  const handleSelectChange = (name, value) => {
+    setFormData({
+      ...formData,
+      [name]: value
+    });
+  };
+
+  // Handle skills input (comma-separated string to array)
+  const handleSkillsChange = (e) => {
+    const skillsString = e.target.value;
+    const skillsArray = skillsString.split(',').map(skill => skill.trim()).filter(skill => skill !== '');
+    setFormData({
+      ...formData,
+      skills: skillsArray
+    });
+  };
+
+  // Handle education form changes
+  const handleEduChange = (e) => {
+    const { name, value } = e.target;
+    setNewEdu({
+      ...newEdu,
+      [name]: value
+    });
+  };
   
-  const [newEdu, setNewEdu] = useState({
-    collegeName: '',
-    course: '',
-    branch: '',
-    startDate: '',
-    endDate: '',
-  })
-
-  // Load user data from Redux store on component mount
-  useEffect(() => {
-    if (userData) {
-      populateFormData(userData)
+  // Add education entry
+  const addEdu = () => {
+    if (!newEdu.collegeName || !newEdu.course) {
+        toast('College name and degree are required');
+      return;
     }
-  }, [userData])
-
-  // Format data from API format to form format
-  function populateFormData(userData) {
-    if (!userData) return
-
-    // Format experiences
-    const formattedExperiences = userData.experience ? userData.experience.map(exp => ({
-      company: exp.companyName || "",
-      position: exp.role || "",
-      startDate: exp.startDate ? new Date(exp.startDate).toISOString().split('T')[0] : "",
-      endDate: exp.endDate ? new Date(exp.endDate).toISOString().split('T')[0] : "",
-      description: exp.description || ""
-    })) : []
-    
-    // Format education
-    const formattedEducation = userData.education ? userData.education.map(edu => ({
-      collegeName: edu.universityName || "",
-      course: edu.degree || "",
-      branch: userData.branch || "",
-      startDate: edu.startDate ? new Date(edu.startDate).toISOString().split('T')[0] : "",
-      endDate: edu.endDate ? new Date(edu.endDate).toISOString().split('T')[0] : ""
-    })) : []
     
     setFormData({
-      userId: userData?._id || "",
-      name: userData?.userId?.name || "",
-      email: userData?.userId?.email || "",
-      profileImage: userData?.profileImage || "",
-      collegeName: userData?.collegeName || "",
-      branch: userData?.branch || "",
-      batch: userData?.batch || "",
-      about: userData?.about || "",
-      location: userData?.contactInfo?.location || "",
-      contactNumber: userData?.contactNumber || "",
-      linkedin: userData?.contactInfo?.linkedin || "",
-      github: userData?.contactInfo?.github || "",
-      skills: userData?.skills || [],
-      experiences: formattedExperiences,
-      education: formattedEducation
-    })
-  }
+      ...formData,
+      education: [...formData.education, newEdu]
+    });
+    
+    // Reset form
+    setNewEdu({
+      collegeName: '',
+      course: '',
+      branch: '',
+      startDate: '',
+      endDate: ''
+    });
+  };
+  
+  // Remove education entry
+  const removeEdu = (index) => {
+    const updatedEducation = [...formData.education];
+    updatedEducation.splice(index, 1);
+    setFormData({
+      ...formData,
+      education: updatedEducation
+    });
+  };
 
-  // Handle form field changes
-  const handleChange = (e) => {
-    const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
-  }
-
-  // Handle dropdown select changes
-  const handleSelectChange = (name, value) => {
-    setFormData(prev => ({ ...prev, [name]: value }))
-  }
-
-  // Handle skills input (comma-separated)
-  const handleSkillsChange = (e) => {
-    const skillsArray = e.target.value.split(',').map(skill => skill.trim()).filter(Boolean)
-    setFormData(prev => ({ ...prev, skills: skillsArray }))
-  }
-
-  // Experience form handlers
+  // Handle experience form changes
   const handleExperienceChange = (e) => {
-    const { name, value } = e.target
-    setNewExperience(prev => ({ ...prev, [name]: value }))
-  }
-
+    const { name, value } = e.target;
+    setNewExperience({
+      ...newExperience,
+      [name]: value
+    });
+  };
+  
+  // Add experience entry
   const addExperience = () => {
-    // Validate required fields
-    if (!newExperience.company || !newExperience.position || !newExperience.startDate) {
-      toast({
-        title: "Missing information",
-        description: "Please fill in the required experience fields",
-        variant: "destructive",
-        duration: 2000
-      })
-      return
+    if (!newExperience.company || !newExperience.position) {
+        toast('Company and position are required');
+      return;
     }
     
-    setFormData(prev => ({ 
-      ...prev, 
-      experiences: [...prev.experiences, newExperience] 
-    }))
+    setFormData({
+      ...formData,
+      experiences: [...formData.experiences, newExperience]
+    });
     
     // Reset form
     setNewExperience({
@@ -174,164 +183,98 @@ export default function ProfileForm() {
       startDate: '',
       endDate: '',
       description: ''
-    })
-  }
-
-  const removeExperience = (index) => {
-    const updatedExperiences = [...formData.experiences]
-    updatedExperiences.splice(index, 1)
-    setFormData(prev => ({ ...prev, experiences: updatedExperiences }))
-  }
-
-  // Education form handlers
-  const handleEduChange = (e) => {
-    const { name, value } = e.target
-    setNewEdu(prev => ({ ...prev, [name]: value }))
-  }
-
-  const addEdu = () => {
-    // Validate required fields
-    if (!newEdu.collegeName || !newEdu.course || !newEdu.startDate) {
-      toast({
-        title: "Missing information",
-        description: "Please fill in the required education fields",
-        variant: "destructive",
-        duration: 2000
-      })
-      return
+    });
+  };
+  
+ // Add proper project handling functions
+ const addProject = () => {
+    if (!newPro.title || !newPro.description) {
+      toast({ variant: "red", title: "Title and description are required" });
+      return;
     }
     
-    setFormData(prev => ({ 
-      ...prev, 
-      education: [...prev.education, newEdu] 
-    }))
+    setFormData({
+      ...formData,
+      projects: [...formData.projects, newPro]
+    });
     
-    // Reset form
-    setNewEdu({
-      collegeName: '',
-      course: '',
-      branch: '',
-      startDate: '',
-      endDate: '',
-    })
-  }
+    setNewPro({
+      title: '',
+      description: '',
+      role: ''
+    });
+  };
+  
+  // Add remove project function
+  const removeProject = (index) => {
+    const updatedProjects = [...formData.projects];
+    updatedProjects.splice(index, 1);
+    setFormData({ ...formData, projects: updatedProjects });
+  };
 
-  const removeEdu = (index) => {
-    const updatedEdu = [...formData.education]
-    updatedEdu.splice(index, 1)
-    setFormData(prev => ({ ...prev, education: updatedEdu }))
-  }
-
-  // Submit form data
-  async function handleSubmit(e) {
-    e.preventDefault()
-    setIsLoading(true)
-    
-    try {
-      // Format data for API according to the expected structure
-      const profileData = {
-        userId: formData.userId,
-        contactInfo: {
-          linkedin: formData.linkedin,
-          github: formData.github,
-          email: formData.email,
-          location: formData.location
-        },
-        about: formData.about,
-        skills: formData.skills,
-        batch: formData.batch,
-        branch: formData.branch,
-        collegeName: formData.collegeName,
-        contactNumber: formData.contactNumber,
-        experience: formData.experiences.map(exp => ({
-          companyName: exp.company,
-          isPresent: !exp.endDate,
-          description: exp.description,
-          role: exp.position,
-          startDate: exp.startDate,
-          endDate: exp.endDate
-        })),
-        education: formData.education.map(edu => ({
-          universityName: edu.collegeName,
-          degree: edu.course,
-          startDate: edu.startDate,
-          endDate: edu.endDate,
-          isPresent: !edu.endDate
-        }))
-      }
-
-      // Dispatch the Redux action
-      const result = await dispatch(UpdateAlumniProfile(profileData)).unwrap()
-      
-      toast({
-        title: "Success",
-        description: "Profile updated successfully",
-        variant: "green",
-        duration: 2000
-      })
-    } catch (error) {
-      console.error("Update error:", error)
-      toast({
-        title: "Error",
-        description: "Failed to update profile",
-        variant: "destructive",
-        duration: 2000
-      })
-    } finally {
-      setIsLoading(false)
+  // Handle image change
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImageFile(file);
+      const fileReader = new FileReader();
+      fileReader.onload = () => {
+        setPreviewUrl(fileReader.result);
+      };
+      fileReader.readAsDataURL(file);
     }
-  }
+  };
 
   // Update profile image
-  async function updateProfileImage() {
-    setIsLoading(true)
+  const updateProfileImage = async () => {
+    // Profile image update logic would go here
+    setIsOpen(false);
+    toast('Profile image updated!');
+  };
+
+  // Submit form
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     
     try {
-      // Get previous image ID for cleanup
-      const prevImagePubId = formData.profileImage.replace("https://res.cloudinary.com/dcqgytpzz/image/upload/", "")?.split("/")[1]?.split(".")[0]
+      // Format data according to backend requirements
+      const formattedData = {
+        about: formData.about || "",
+        contactInfo: {
+          linkedin: formData.linkedin || "",
+          github: formData.github || "",
+          email: formData.email || "",
+          location: formData.location || ""
+        },
+        skills: formData.skills || [],
+        batch: formData.batch || "",
+        education: formData.education?.map(edu => ({
+            universityName: edu.collegeName,
+            degree: edu.course,
+            major: edu.branch,
+            startDate: edu.startDate,
+            endDate: edu.endDate || null,
+            isPresent: !edu.endDate
+          })) || [],
+        projects: formData.projects?.map(pro => ({
+            title: pro.title,
+            description: pro.description,
+            role: pro.role
+          })) || []
+      };
+
+      // Dispatch the registerAlumni action
+      const result = await dispatch(registerStudent(formattedData)).unwrap();
       
-      // Upload new image
-      const imageInfo = await uploadImage()
-      if (!imageInfo) {
-        throw new Error("Image upload failed")
+      if (result) {
+        toast("Profile registered successfully!");
+        router.replace("/home");
       }
-      
-      // Update profile with new image
-      const profileImageData = {
-        userId: formData.userId,
-        profileImage: imageInfo.secure_url
-      }
-      
-      await dispatch(UpdateAlumniProfile(profileImageData)).unwrap()
-      
-      // Update form data state
-      setFormData(prev => ({ ...prev, profileImage: imageInfo.secure_url }))
-      
-      // Delete old image if exists
-      if (prevImagePubId) {
-        await axios.post(deleteAssetUrl, { publicId: prevImagePubId })
-      }
-      
-      toast({
-        title: "Success",
-        description: "Profile image updated successfully",
-        variant: "green",
-        duration: 2000
-      })
-      
-      setIsOpen(false)
     } catch (error) {
-      console.error("Image update error:", error)
-      toast({
-        title: "Error",
-        description: "Failed to update profile image",
-        variant: "destructive",
-        duration: 2000
-      })
-    } finally {
-      setIsLoading(false)
+      console.error("Error registering profile:", error);
+      toast(error.message || "Failed to register profile");
     }
-  }
+  };
 
   return (
     <div>
@@ -369,7 +312,7 @@ export default function ProfileForm() {
                     )}
                   </div>
                   <DialogFooter>
-                    <Button disabled={isLoading || !previewUrl} onClick={updateProfileImage} type="button">
+                    <Button disabled={ !previewUrl} onClick={updateProfileImage} type="button">
                       {isLoading ? "Uploading..." : "Save changes"}
                     </Button>
                   </DialogFooter>
@@ -392,7 +335,7 @@ export default function ProfileForm() {
                 <TabsTrigger className="flex-grow sm:flex-grow-0 text-xs sm:text-sm py-2 px-[2px] md:px-10 m-0.5 sm:m-1 rounded-sm data-[state=active]:bg-blue-600 data-[state=active]:text-primary-foreground my-1" value="basic">Basic</TabsTrigger>
                 <TabsTrigger className="flex-grow sm:flex-grow-0 text-xs sm:text-sm py-2 px-[2px] md:px-10 m-0.5 sm:m-1 rounded-sm data-[state=active]:bg-blue-600 data-[state=active]:text-primary-foreground my-1" value="professional">Professional</TabsTrigger>
                 <TabsTrigger className="flex-grow sm:flex-grow-0 text-xs sm:text-sm py-2 px-[2px] md:px-10 m-0.5 sm:m-1 rounded-sm data-[state=active]:bg-blue-600 data-[state=active]:text-primary-foreground my-1" value="education">Education</TabsTrigger>
-                <TabsTrigger className="flex-grow sm:flex-grow-0 text-xs sm:text-sm py-2 px-[2px] md:px-10 m-0.5 sm:m-1 rounded-sm data-[state=active]:bg-blue-600 data-[state=active]:text-primary-foreground my-1" value="experience">Experience</TabsTrigger>
+                <TabsTrigger className="flex-grow sm:flex-grow-0 text-xs sm:text-sm py-2 px-[2px] md:px-10 m-0.5 sm:m-1 rounded-sm data-[state=active]:bg-blue-600 data-[state=active]:text-primary-foreground my-1" value="projects">projects</TabsTrigger>
               </TabsList>
 
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -699,100 +642,104 @@ export default function ProfileForm() {
                 </TabsContent>
 
                 {/* Experience Tab */}
-                <TabsContent value="experience">
-                  <div className="space-y-4">
-                    {formData.experiences?.map((exp, index) => (
-                      <Card key={index} className="relative">
-                        <CardHeader>
-                          <CardTitle>{exp.position} at {exp.company}</CardTitle>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="absolute top-2 right-2"
-                            onClick={() => removeExperience(index)}
-                            type="button"
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="text-sm text-muted-foreground">
-                            {exp.startDate || 'N/A'} - {exp.endDate || 'Present'}
-                          </p>
-                          <p className="mt-2">{exp.description}</p>
-                        </CardContent>
-                      </Card>
-                    ))}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Add New Experience</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-4">
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                              <Label htmlFor="exp-company">Company</Label>
-                              <Input 
-                                id="exp-company" 
-                                name="company" 
-                                value={newExperience.company} 
-                                onChange={handleExperienceChange} 
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label htmlFor="exp-position">Position</Label>
-                              <Input 
-                                id="exp-position" 
-                                name="position" 
-                                value={newExperience.position} 
-                                onChange={handleExperienceChange} 
-                              />
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                              <Label htmlFor="exp-startDate">Start Date</Label>
-                              <Input 
-                                id="exp-startDate" 
-                                name="startDate" 
-                                type="date" 
-                                value={newExperience.startDate} 
-                                onChange={handleExperienceChange} 
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label htmlFor="endDate">End Date</Label>
-                              <Input id="endDate" name="endDate" type="date" value={newExperience.endDate} onChange={handleExperienceChange} />
-                            </div>
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="description">Description</Label>
-                            <Textarea id="description" name="description" value={newExperience.description} onChange={handleExperienceChange} />
-                          </div>
-                        </div>
-                      </CardContent>
-                      <CardFooter>
-                      <Button type="button" onClick={addExperience} className="w-full md:w-1/3 mx-auto">
-                        <Plus className="mr-2 h-4 w-4" /> Add Experience
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                </div>
-              </TabsContent>
+                <TabsContent value="projects">
+  <div className="space-y-4">
+    {/* Display existing projects */}
+    {formData.projects?.map((pro, index) => (
+      <Card key={index} className="relative">
+        <CardHeader>
+          <CardTitle>{pro.title}</CardTitle>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute top-2 right-2"
+            onClick={() => removeProject(index)}
+            type="button"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <p className="font-medium mb-2">Description:</p>
+          <p className="text-sm text-muted-foreground">{pro.description}</p>
+          {pro.role && (
+            <>
+              <p className="font-medium mt-4 mb-2">Your Role:</p>
+              <p className="text-sm text-muted-foreground">{pro.role}</p>
+            </>
+          )}
+        </CardContent>
+      </Card>
+    ))}
 
-              <Button type="submit" onClick={handleSubmit} disabled={isLoading} className="w-full bg-blue-600">
+    {/* Add new project form */}
+    <Card>
+      <CardHeader>
+        <CardTitle>Add New Project</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="project-title">Title</Label>
+              <Input
+                id="project-title"
+                name="title"
+                placeholder="Project title"
+                value={newPro.title}
+                onChange={handleProChange}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="project-role">Your Role</Label>
+              <Input
+                id="project-role"
+                name="role"
+                placeholder="Your role in the project"
+                value={newPro.role}
+                onChange={handleProChange}
+              />
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="project-description">Description</Label>
+            <Textarea
+              id="project-description"
+              name="description"
+              placeholder="Project description"
+              value={newPro.description}
+              onChange={handleProChange}
+              rows={3}
+            />
+          </div>
+        </div>
+      </CardContent>
+      <CardFooter>
+        <Button 
+          type="button" 
+          onClick={addProject} 
+          className="w-full md:w-1/3 mx-auto"
+        >
+          <Plus className="mr-2 h-4 w-4" /> Add Project
+        </Button>
+      </CardFooter>
+    </Card>
+  </div>
+</TabsContent>
+
+              <Button type="submit" disabled={isLoading} className="w-full bg-blue-600">
                 {isLoading ? (
-                  <>Updating... <ArrowRight className="ml-2 h-4 w-4 animate-spin " /></>
+                  <>Updating... <ArrowRight className="ml-2 h-4 w-4 animate-spin" /></>
                 ) : (
-                  <>Update profile <ArrowRight className="ml-2 h-4 w-4" /></>
+                  <>Register Profile <ArrowRight className="ml-2 h-4 w-4" /></>
                 )}
               </Button>
             </form>
-
           </Tabs>
         </CardContent>
       </Card>
     </div>
-    </div>
-  )
-}
+  </div>
+  );
+};

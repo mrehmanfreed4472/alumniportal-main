@@ -11,11 +11,11 @@ const initialState = {
 
 // POST job thunk
 export const registerAlumni = createAsyncThunkWrapper(
-  "job/create",
+  "Alumni/Create",
   async (payload) => {
-    console.log("🚀 API Hit Started: /jobs/create");
-    const response = await client.post("/jobs/create", payload);
-    console.log("🚀 ~ Job Post Response:", response);
+    console.log("🚀 API Hit Started: alumni/register");
+    const response = await client.post("/alumni/register", payload);
+    console.log("🚀 ~ response:", response)
     const { data, status } = response || {};
     return { data, status };
   }

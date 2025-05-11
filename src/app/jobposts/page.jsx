@@ -26,6 +26,7 @@ import { useRouter } from "next/navigation";
 import client, { parseJWT } from "@/services/apiClient";
 import { useDispatch, useSelector } from "react-redux";
 import { getAllJobs } from "@/features/jobPost/PostJobSlice";
+import { Link2Icon, LinkNone1Icon } from "@radix-ui/react-icons";
 
 export default function SearchJob() {
   const { toast } = useToast();
@@ -261,33 +262,45 @@ export default function SearchJob() {
                     <div className={job?.thumbnail ? "lg:w-2/3 p-6" : "w-full p-6"}>
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center space-x-3 ">
-                          {job?.postedByName && (
-                            <Link href={`/profile/${job.userId}`}>
+                          {job?.name && (
+                            <Link href={`#`}>
                               <div className="flex flex-row gap-x-4">
                                 <Avatar className="w-10 h-10">
-                                  <AvatarImage src={job.thumbnail} alt={job.postedByName} />
-                                  <AvatarFallback>{job.postedByName[0]}</AvatarFallback>
+                                  <AvatarImage src={job?.thumbnail} alt={job?.name} />
+                                  <AvatarFallback>{job?.name[0]}</AvatarFallback>
                                 </Avatar>
-                                <p className="text-blue-700 font-semibold mt-2">{job.postedByName}</p>
+                                <p className="text-[#A51C30] font-semibold mt-2">{job?.name}</p>
                               </div>
-                              <div className="text-blue-700">
-                                <p className="text-sm text-gray-500">{job.companyName}</p>
+                              <div className="text-gray-500 mt-3 flex items-center" >
+                                <p className="text-sm text-gray-500">Company : <b>{job?.companyName}</b></p>
+                                <p className="mx-3">Batch: <b>{job?.batch}</b></p>
                               </div>
                             </Link>
                           )}
                         </div>
                       </div>
-                      <h2 className="text-2xl font-bold mb-2">{job.job?.title}</h2>
+                      <h2 className="text-2xl font-bold mb-2">{job?.job?.title}</h2>
+                      <p className="text  mb-2">{job?.job?.description}</p>
                       <div className="flex items-center text-gray-500 text-sm mb-4">
-                        {job.location}
+                        {job?.location}
                         <span className="mx-2">•</span>
-                        {job.job?.category ? job.job.category.toUpperCase() : 'N/A'}
+                        {job?.job?.category ? job?.job.category.toUpperCase() : 'N/A'}
                         <span className="mx-2">•</span>
                         <Calendar className="w-4 h-4 mr-1" />
                         <p className="text-sm text-gray-500">
-                          Posted {formatDistanceToNow(new Date(job.job?.createdAt), { addSuffix: true })}
+                          Posted {formatDistanceToNow(new Date(job?.job?.createdAt), { addSuffix: true })}
                         </p>
+
                       </div>
+                      <div className="flex flex-row items-center text-gray-600 text-sm mb-4 space-x-2">
+                        <b className="flex items-center">
+                          Link <Link2Icon className="ml-1" />
+                        </b>
+                        <Link href={job?.job?.url} className="text-blue-600 underline break-all" target="_blank">
+                          {job?.job?.url}
+                        </Link>
+                      </div>
+
                       {/* ... (rest of the card content remains the same) */}
                     </div>
                   </div>

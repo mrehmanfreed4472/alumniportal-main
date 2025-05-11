@@ -10,29 +10,49 @@ import { StarIcon } from 'lucide-react'
 import Footer from '@/components/footer/Footer'
 import NavForSlash from '@/components/header/NavForSlash'
 import Navbar2 from "@/components/header/Navbar2"
+import { useDispatch } from 'react-redux'
+import { PostFeedbackApi } from '@/features/feedback/feedbackSlice'
+import { useToast } from '@/hooks/use-toast'
 
 export default function ReviewCollector() {
   const [rating, setRating] = useState(0)
   const [submitted, setSubmitted] = useState(false)
   const [userData, setUserData] = useState()
+  const dispatch = useDispatch()
+    const { toast } = useToast();
 
-    const handleSubmit = (event) => {
-        event.preventDefault()
-        // Here you would typically send the form data to your backend
-        console.log('Form submitted')
-        setSubmitted(true)
+
+  const handleSubmit = (event) => {
+    event.preventDefault()
+  
+    const form = event.target
+  
+    const payload = {
+      name: form.name.value,
+      email: form.email.value,
+      graduationYear: form["graduation-year"].value,
+      rating,
+      review: form.review.value,
     }
+  
+    dispatch(PostFeedbackApi(payload))
+      .unwrap()
+      .then(() => {
+        toast({
+          variant: "green",
+          title: "Feedback Submitted Successfully",
+          duration: 1700
+        });
+        
+        setSubmitted(true)
+      })
+      .catch((error) => {
+        console.error("Error submitting review:", error)
+      })
+  }
+  
+  
 
-    useEffect(() => {
-        let user = (localStorage.getItem('amsjbckumr'))
-        if(!user){
-          return;
-        }
-        user = jwt.verify(user, process.env.NEXT_PUBLIC_JWT_SECRET);
-        if (user) {
-          setUserData(user)
-        }
-    }, [])
 
   return (
     <>

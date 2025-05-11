@@ -12,8 +12,8 @@ const initialState = {
 export const PostJobApi = createAsyncThunkWrapper(
   "job/create",
   async (payload) => {
-    console.log("🚀 API Hit Started: /jobs/create");
-    const response = await client.post("/jobs/create", payload, {
+    console.log("🚀 API Hit Started: /jobs/job");
+    const response = await client.post("/jobs/job", payload,{
       "Content-Type": "multipart/form-data",
     });
     console.log("🚀 ~ Job Post Response:", response);

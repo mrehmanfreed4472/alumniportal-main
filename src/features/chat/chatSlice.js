@@ -192,34 +192,54 @@ const chatSlice = createSlice({
       state.error = action.payload?.message || "Failed to join group chat";
     });
 
-    // Send Message
+    // // Send Message
     builder.addCase(sendMessage.pending, (state) => {
       state.loadingMessages = true;
       state.error = null;
     });
     builder.addCase(sendMessage.fulfilled, (state, action) => {
       state.loadingMessages = false;
-      const { channelId } = action.payload.data;
       
-      // Add the new message to the messages array for the channel
-      if (!state.messages[channelId]) {
+      // Add robust error checking
+      if (!action.payload?.data?.channelId) {
+        console.error('Invalid payload structure:', action.payload);
+        return;
+      }
+    
+      const { channelId } = action.payload.data;
+      const messageData = action.payload.data;
+    
+      // Ensure messages object exists
+      if (typeof state.messages !== 'object') {
+        state.messages = {};
+      }
+    
+      // Initialize channel messages array if needed
+      if (!Array.isArray(state.messages[channelId])) {
         state.messages[channelId] = [];
       }
-      
-      state.messages[channelId].push(action.payload.data);
-      
-      // Update last message for chat or group
-      const chatIndex = state.chats.findIndex(c => c.channelId === channelId);
-      if (chatIndex >= 0) {
-        state.chats[chatIndex].lastMessage = action.payload.data.text;
-        state.chats[chatIndex].lastMessageTime = new Date().toISOString();
-      }
-      
-      const groupIndex = state.groups.findIndex(g => g.channelId === channelId);
-      if (groupIndex >= 0) {
-        state.groups[groupIndex].lastMessage = action.payload.data.text;
-        state.groups[groupIndex].lastMessageTime = new Date().toISOString();
-      }
+    
+      // Create new array reference safely
+      const existingMessages = Array.isArray(state.messages[channelId]) 
+        ? [...state.messages[channelId]] 
+        : [];
+    
+      state.messages[channelId] = [...existingMessages, messageData];
+    
+      // Safe array updates for chats and groups
+      const safeUpdate = (items) => {
+        if (!Array.isArray(items)) return items;
+        return items.map(item => 
+          item.channelId === channelId ? {
+            ...item,
+            lastMessage: messageData.text,
+            lastMessageTime: new Date().toISOString()
+          } : item
+        );
+      };
+    
+      state.chats = safeUpdate(state.chats);
+      state.groups = safeUpdate(state.groups);
     });
     builder.addCase(sendMessage.rejected, (state, action) => {
       state.loadingMessages = false;

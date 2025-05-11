@@ -7,7 +7,13 @@ import { useRouter } from 'next/navigation'
 import { useToast } from '@/hooks/use-toast'
 import { useDispatch } from 'react-redux'
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -20,52 +26,59 @@ export default function SignupForm() {
   const dispatch = useDispatch()
 
   const [inputs, setInputs] = useState({
-    name: "",
-    email: "",
-    password: "",
-    role: "",
+    name: '',
+    email: '',
+    password: '',
+    role: '',
+    collegeName: ''
   })
+  const [profilePhoto, setProfilePhoto] = useState(null)
   const [isLoading, setLoading] = useState(false)
 
   const handleSignup = async () => {
     setLoading(true)
 
-    const { name, email, password, role } = inputs
+    const { name, email, password, role, collegeName } = inputs
 
-    // Validate input fields
-    if (!name || !email || !password || !role) {
+    if (!name || !email || !password || !role || !collegeName || !profilePhoto) {
       toast({
-        variant: "red",
-        title: "All fields are required!",
+        variant: 'red',
+        title: 'All fields including profile photo are required!',
       })
       setLoading(false)
       return
     }
 
+    const formData = new FormData()
+    formData.append('name', name)
+    formData.append('email', email)
+    formData.append('password', password)
+    formData.append('role', role)
+    formData.append('collegeName', collegeName)
+    formData.append('profilePhoto', profilePhoto)
+
     try {
-
-
-      const res = await dispatch(handleSignupApi(inputs)).unwrap()
+      const res = await dispatch(handleSignupApi(formData)).unwrap()
 
       if (res?.status === 201 || res?.status === 200) {
         toast({
-          variant: "green",
-          title: "Signup successful! Redirecting to login...",
+          variant: 'green',
+          title: 'Signup successful! Redirecting to login...',
         })
         setTimeout(() => {
           router.push('/login')
         }, 1000)
       } else {
         toast({
-          variant: "red",
-          title: res?.data?.message || "Signup failed. Try again!",
+          variant: 'red',
+          title: res?.data?.message || 'Signup failed. Try again!',
         })
       }
     } catch (err) {
       console.error("Signup error:", err)
       toast({
-        variant: "red",
-        title: err?.message || "Something went wrong!",
+        variant: 'red',
+        title: err?.message || 'Something went wrong!',
       })
     } finally {
       setLoading(false)
@@ -100,6 +113,7 @@ export default function SignupForm() {
                   onChange={(e) => setInputs({ ...inputs, name: e.target.value })}
                 />
               </div>
+
               <div>
                 <Label htmlFor="email">Email address</Label>
                 <Input
@@ -110,6 +124,7 @@ export default function SignupForm() {
                   onChange={(e) => setInputs({ ...inputs, email: e.target.value })}
                 />
               </div>
+
               <div>
                 <Label htmlFor="password">Password</Label>
                 <Input
@@ -120,6 +135,32 @@ export default function SignupForm() {
                   onChange={(e) => setInputs({ ...inputs, password: e.target.value })}
                 />
               </div>
+
+              <div>
+                <Label htmlFor="collegeName">College Name</Label>
+                <Input
+                  id="collegeName"
+                  type="text"
+                  placeholder="Enter your college name"
+                  value={inputs.collegeName}
+                  onChange={(e) => setInputs({ ...inputs, collegeName: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="profilePhoto">Profile Photo</Label>
+                <Input
+                  id="profilePhoto"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      setProfilePhoto(e.target.files[0])
+                    }
+                  }}
+                />
+              </div>
+
               <div>
                 <Label htmlFor="role">Role</Label>
                 <Select onValueChange={(value) => setInputs({ ...inputs, role: value })}>

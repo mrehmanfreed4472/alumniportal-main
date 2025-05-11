@@ -86,6 +86,7 @@ export default function AlumniMemories() {
         title: "Memory Posted Successfully",
         duration: 1700
       });
+      dispatch(getAllMemories());
       setNewMemory("");
       setPreviewUrl(null);
       setSelectedImage(null);
@@ -277,7 +278,7 @@ const filteredMemories = memoriesList
                   <img
                     src={memory?.pic || ''}
                     alt="Memory"
-                    className="w-full h-64 object-cover rounded-lg mb-4"
+                    className="w-full h-64 object-contain rounded-lg mb-4"
                   />
                 )}
 

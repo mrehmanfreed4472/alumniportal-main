@@ -1,4 +1,3 @@
-
 "use client"
 import Image from "next/image"
 import jwt from "jsonwebtoken"
@@ -16,35 +15,53 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { IconMoneybag, IconPigMoney } from "@tabler/icons-react"
-import { useSelector } from "react-redux"
+import { useDispatch, useSelector } from "react-redux"
+import { getUser } from "@/services/checkAuth"
+import { getAlumniInfo, getStudentInfo } from "@/features/auth/userInfoSlice"
 
 function Navbar2() {
-  const [user, setUser] = useState("")
   const [isOpen, setIsOpen] = useState(false)
-  // const [userData, setUserData] = useState({ collegeName: '', name: '' })
+  const dispatch = useDispatch();
   const router = useRouter()
   const pathname = usePathname()
-
+  const user = getUser();
+  const userID = user?._id;
+  const profilePhoto = user?.profilePhoto;
+  
   const logoutUser = () => {
     if (typeof window !== "undefined") {
       localStorage.removeItem("user");
       localStorage.removeItem("token");
     }
-    console.log('Loged out')
     router.replace("/login");
   };
 
   const userData = useSelector((state) => state?.userInfo?.userData)
-  console.log("🚀 ~ Navbar2 ~ userData:", userData)
 
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        if (!userData && userID) {
+          if (user?.role === "alumni") {
+            await dispatch(getAlumniInfo(userID)).unwrap();
+          } else if (user?.role === "student") {
+            await dispatch(getStudentInfo(userID)).unwrap();
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching user info:", error);
+      }
+    };
 
+    fetchUserInfo();
+  }, [userID, user?.role, dispatch, userData]);
 
   const navItems = [
     { name: "Reconnect", href: "/reconnect", icon: <Users className="h-4 w-4 mr-2" /> },
     { name: "Careers", href: "/jobposts", icon: <Search className="h-4 w-4 mr-2" /> },
     { name: "Messages", href: "/chat", icon: <Mail className="h-4 w-4 mr-2" /> },
     { name: "Memories", href: "/memories", icon: <SmilePlus className="h-4 w-4 mr-2" /> },
-    { name: "Campus", href: "/student-hub", icon: <Calendar className="h-4 w-4 mr-2" /> },
+    { name: "Student Hub", href: "/student-hub", icon: <Calendar className="h-4 w-4 mr-2" /> },
     { name: "Donation", href: "/donation", icon: <DollarSignIcon className="h-4 w-4 mr-2" /> },
   ]
 
@@ -53,13 +70,7 @@ function Navbar2() {
     { name: "Reconnect", href: "/reconnect", icon: <Users className="h-5 w-5" /> },
     { name: "Careers", href: "/jobposts", icon: <Search className="h-5 w-5" /> },
     { name: "Memories", href: "/memories", icon: <SmilePlus className="h-5 w-5" /> },
-   { name: "Messages", href: "/chat", icon: <Mail className="h-5 w-5" /> },
-    // { name: "Profile", href: `/profile/${userData?._id}`, icon: 
-    //   <Avatar className="h-6 w-6">
-    //     <AvatarImage src={userData?.profileImage} alt={userData?.name} />
-    //     <AvatarFallback>{userData?.name?.charAt(0)}</AvatarFallback>
-    //   </Avatar>
-    // },
+    { name: "Messages", href: "/chat", icon: <Mail className="h-5 w-5" /> },
   ]
 
   return (
@@ -69,7 +80,7 @@ function Navbar2() {
         <div className="max-w-[2200px] mx-auto flex h-16 items-center justify-between px-4" id="nav">
           <Link href="/home" className="flex items-center space-x-2">
            <Image src="/image/ntu-logo.png" alt="NTU Logo" width={40} height={40} priority />
-            <span className="font-bold text-2xl text-black">{userData?.collegeName  ||"NTU AMS"}</span>
+            <span className="font-bold text-2xl text-black">{userData?.collegeName || "NTU AMS"}</span>
           </Link>
 
           <nav className="flex gap-6">
@@ -90,8 +101,10 @@ function Navbar2() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 m-4 rounded-full">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={userData?.profileImage} alt={userData?.name} />
-                    <AvatarFallback>{userData?.name?.charAt(0)}</AvatarFallback>
+                    <AvatarImage src={profilePhoto} alt={user?.name} />
+                    <AvatarFallback>
+                      {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
+                    </AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
@@ -117,7 +130,7 @@ function Navbar2() {
         <div className="container flex p-10 h-16 items-center justify-between">
           <Link href="/home" className="flex items-center space-x-2">
           <Image src="/image/ntu-logo.png" alt="NTU Logo" width={35} height={35} priority />
-            <span className="font-bold text-lg text-black">{pathname === '/' ? "AMS":userData?.collegeName  ||"AMS"}</span>
+            <span className="font-bold text-lg text-black">{userData?.collegeName || "AMS"}</span>
           </Link>
           <div className="flex items-center gap-4">
           <Link href={"/student-hub"}>
@@ -135,7 +148,7 @@ function Navbar2() {
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuItem asChild>
-                  <Link href={`/profile/${userData?.userId?.name}`}>
+                  <Link href={`/profile/${userData?._id}`}>
                     <User className="mr-2 h-4 w-4" />
                     <span>Profile</span>
                   </Link>
@@ -154,7 +167,7 @@ function Navbar2() {
         <SheetContent side="right" className="w-[300px] sm:w-[400px]">
           <div className="flex flex-col h-full">
             <div className="flex items-center justify-between mb-6">
-              <span className="font-bold text-xl text-black">  {{pathname}=='/' ? userData?.collegeName : "NTU AMS"}</span>
+              <span className="font-bold text-xl text-black">{userData?.collegeName || "NTU AMS"}</span>
               <SheetClose asChild>
                 <Button variant="ghost" size="icon">
                   <X className="h-6 w-6" />
@@ -189,13 +202,6 @@ function Navbar2() {
             </Link>
           ))}
           
-          {/* Center Plus Button */}
-          {/* <div className="flex items-center justify-center">
-            <button onClick={() => router.push("/jobposts")} className="absolute -top-2 inline-flex items-center justify-center w-12 h-12 bg-black rounded-full">
-              <Search className="h-6 w-6 text-white" />
-            </button>
-          </div> */}
-
           {mobileNavItems.slice(2).map((item) => (
             <Link
               key={item.name}
@@ -213,4 +219,3 @@ function Navbar2() {
 }
 
 export default Navbar2
-

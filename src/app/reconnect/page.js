@@ -15,75 +15,48 @@ import AlumniLoading from '@/components/AlumniLoading'
 import { useRouter } from 'next/navigation'
 import { useToast } from "@/hooks/use-toast"
 import { isAuthenticated } from "@/services/checkAuth"
+import { useSelector, useDispatch } from "react-redux"
+import { PostConnection } from "@/features/alumni/connectSlice"
+import { getAlumniList } from "@/features/alumni/alumniSlice"
 
 export default function UserConnectionPage() {
   const { toast } = useToast()
   const router = useRouter()
+  const dispatch = useDispatch()
 
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedBatch, setSelectedBatch] = useState("All")
   const [selectedBranch, setSelectedBranch] = useState("All")
   const [activeTab, setActiveTab] = useState("all")
   const [loading, setLoading] = useState(false)
-  const [noAlumni, setNoAlumni] = useState(false)
+  const [processingConnection, setProcessingConnection] = useState(null)
+  
+  // Get alumni list from Redux store
+  const alumniList = useSelector((state) => state?.alumniList?.alumniList?.alumni || [])
+  console.log("🚀 ~ UserConnectionPage ~ alumniList:", alumniList)
+  const connectionStatus = useSelector((state) => state?.connect?.status)
+  const connectionError = useSelector((state) => state?.connect?.error)
+
+  const [localAlumniList, setLocalAlumniList] = useState([])
+
+  // Update local alumni list when Redux state changes
+  useEffect(() => {
+    if (alumniList && alumniList.length > 0) {
+      setLocalAlumniList(alumniList)
+    }
+  }, [alumniList])
+
+  useEffect(() => {
+    dispatch(getAlumniList());
+  }, [dispatch]);
+
   useEffect(() => {
     if (!isAuthenticated()) {
-      console.log("User not authenticated, redirecting to login");
-      router.replace("/login");
-      return;
+      console.log("User not authenticated, redirecting to login")
+      router.replace("/login")
+      return
     }
-  }, [router]);
-  // Dummy data for alumni
-  const [users, setUsers] = useState([
-    {
-      _id: '1',
-      name: 'John Doe',
-      profileImage: 'https://via.placeholder.com/150',
-      jobTitle: 'Software Engineer',
-      branch: 'Computer Science',
-      batch: '2015',
-      location: 'New York, USA',
-      isVerified: true,
-      isConnected: false,
-      isCurrentUser: false
-    },
-    {
-      _id: '2',
-      name: 'Jane Smith',
-      profileImage: 'https://via.placeholder.com/150',
-      jobTitle: 'Data Scientist',
-      branch: 'Information Technology',
-      batch: '2016',
-      location: 'San Francisco, USA',
-      isVerified: false,
-      isConnected: true,
-      isCurrentUser: false
-    },
-    {
-      _id: '3',
-      name: 'Alice Johnson',
-      profileImage: 'https://via.placeholder.com/150',
-      jobTitle: 'Product Manager',
-      branch: 'Electrical Engineering',
-      batch: '2017',
-      location: 'London, UK',
-      isVerified: true,
-      isConnected: false,
-      isCurrentUser: false
-    },
-    {
-      _id: '4',
-      name: 'Bob Brown',
-      profileImage: 'https://via.placeholder.com/150',
-      jobTitle: 'DevOps Engineer',
-      branch: 'Mechanical Engineering',
-      batch: '2018',
-      location: 'Berlin, Germany',
-      isVerified: false,
-      isConnected: false,
-      isCurrentUser: false
-    }
-  ])
+  }, [router])
 
   // Simulate loading state
   useEffect(() => {
@@ -93,33 +66,102 @@ export default function UserConnectionPage() {
     }, 1000) // Simulate a 1-second loading delay
   }, [])
 
-  const handleConnect = (id) => {
-    setUsers(users.map(user =>
-      user._id === id ? { ...user, isConnected: !user.isConnected } : user
-    ))
-    toast({
-      description: `Connection ${users.find(user => user._id === id).isConnected ? 'removed' : 'added'} successfully!`,
-      variant: "blue",
-      duration: 1500
-    })
+  // Handle connection updates from API
+  useEffect(() => {
+    if (processingConnection !== null) {
+      if (connectionStatus === 'succeeded') {
+        // Update local state to reflect the connection change
+        setLocalAlumniList(prevList => 
+          prevList.map(user => 
+            (user._id === processingConnection || (user.id && user.id._id === processingConnection))
+              ? { ...user, isConnected: true } 
+              : user
+          )
+        )
+        
+        toast({
+          description: `Connection added successfully!`,
+          variant: "blue",
+          duration: 1500
+        })
+        
+        setProcessingConnection(null)
+      } else if (connectionStatus === 'failed') {
+        toast({
+          description: `Connection failed: ${connectionError || 'Unknown error'}`,
+          variant: "destructive",
+          duration: 3000
+        })
+        setProcessingConnection(null)
+      }
+    }
+  }, [connectionStatus, connectionError, processingConnection, toast])
+
+  const handleConnect = (userData) => {
+    // Get the alumni ID based on data structure
+    const alumniId = userData.id?._id || userData._id
+    
+    if (!alumniId) {
+      toast({
+        description: "Cannot connect: Alumni ID not found",
+        variant: "destructive",
+        duration: 3000
+      })
+      return
+    }
+    
+    setProcessingConnection(alumniId)
+    
+    // Dispatch the connection action
+    dispatch(PostConnection({ alumniId }))
   }
 
-  const filteredUsers = users.filter(user =>
-    (user.name?.toLowerCase().includes(searchQuery.toLowerCase()) &&
-    (selectedBatch === "All" || user.batch === selectedBatch) &&
-    (selectedBranch === "All" || user.branch === selectedBranch))
-  )
-
-  const groupedUsers = filteredUsers.reduce((acc, user) => {
-    if (activeTab === "batch") {
-      acc[user.batch] = [...(acc[user.batch] || []), user]
-    } else if (activeTab === "branch") {
-      acc[user.branch] = [...(acc[user.branch] || []), user]
-    } else {
-      acc["All"] = [...(acc["All"] || []), user]
+  // Handle View Profile navigation
+  const handleViewProfile = (userData) => {
+    const profileId = userData.id?._id || userData._id
+    
+    if (!profileId) {
+      toast({
+        description: "Cannot view profile: Alumni ID not found",
+        variant: "destructive",
+        duration: 3000
+      })
+      return
     }
+    
+    router.push(`/alumni-profile/${profileId}`)
+  }
+
+  // Filter users based on search query and dropdown selections
+  const filteredUsers = localAlumniList.filter(user => {
+    const userName = user.name || (user.id && user.id.name) || ""
+    const userBatch = user.batch || ""
+    const userBranch = user.branch || ""
+    
+    return (
+      userName.toLowerCase().includes(searchQuery.toLowerCase()) &&
+      (selectedBatch === "All" || userBatch === selectedBatch) &&
+      (selectedBranch === "All" || userBranch === selectedBranch)
+    )
+  })
+
+  // Group users based on active tab
+  const groupedUsers = filteredUsers.reduce((acc, user) => {
+    const group = activeTab === "batch" ? (user.batch || "Unknown") : 
+                  activeTab === "branch" ? (user.branch || "Unknown") : 
+                  "All"
+    
+    if (!acc[group]) {
+      acc[group] = []
+    }
+    
+    acc[group].push(user)
     return acc
   }, {})
+
+  // Generate unique batch and branch options from data
+  const batchOptions = [...new Set(localAlumniList.map(user => user.batch).filter(Boolean))]
+  const branchOptions = [...new Set(localAlumniList.map(user => user.branch).filter(Boolean))]
 
   return (
     <div>
@@ -150,10 +192,9 @@ export default function UserConnectionPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="All">All Batches</SelectItem>
-                    <SelectItem value="2015">2015</SelectItem>
-                    <SelectItem value="2016">2016</SelectItem>
-                    <SelectItem value="2017">2017</SelectItem>
-                    <SelectItem value="2018">2018</SelectItem>
+                    {batchOptions.map(batch => (
+                      <SelectItem key={batch} value={batch}>{batch}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <Select value={selectedBranch} onValueChange={setSelectedBranch}>
@@ -162,10 +203,9 @@ export default function UserConnectionPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="All">All Branches</SelectItem>
-                    <SelectItem value="Computer Science">Computer Science</SelectItem>
-                    <SelectItem value="Information Technology">Information Technology</SelectItem>
-                    <SelectItem value="Electrical Engineering">Electrical Engineering</SelectItem>
-                    <SelectItem value="Mechanical Engineering">Mechanical Engineering</SelectItem>
+                    {branchOptions.map(branch => (
+                      <SelectItem key={branch} value={branch}>{branch}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -190,74 +230,92 @@ export default function UserConnectionPage() {
                       <h2 className="text-2xl font-semibold mb-4">{group}</h2>
                     )}
                     <motion.div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 mb-8">
-                      {groupUsers.map((user) => (
-                        <motion.div
-                          key={user._id}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -20 }}
-                          transition={{ duration: 0.3 }}
-                        >
-                          <Card className="overflow-hidden hover:shadow-2xl transition-shadow duration-300 h-full flex flex-col">
-                            <CardHeader className="p-0">
-                              <div className="h-24 bg-gradient-to-r from-[#A51C30] to-[#D43F56]"></div>
-                            </CardHeader>
-                            <CardContent className="pt-0 pb-6 px-6 flex-grow flex flex-col">
-                              <div className="flex justify-center -mt-12 mb-4">
-                                <Avatar className="w-24 h-24 border-4 border-white shadow-lg">
-                                  <AvatarImage src={user.profileImage} alt={user.name} />
-                                  <AvatarFallback>{user.name.split(" ").map(n => n[0]).join("")}</AvatarFallback>
-                                </Avatar>
-                              </div>
-                              <div className="flex flex-row items-center justify-center">
-                                <h3>{user.name}</h3>
-                                {user.isVerified ? (
-                                  <ShieldCheck className="w-4 h-4 ml-2 font-bold" />
-                                ) : (
-                                  <ShieldOff className="w-4 h-4 ml-2 text-red-500" />
-                                )}
-                                {user.isCurrentUser && <p className="text-sm text-muted-foreground">(You)</p>}
-                              </div>
-                              <p className="text-sm text-muted-foreground text-center mb-4">{user.jobTitle || "Position not specified"}</p>
-                              <div className="space-y-2 text-sm flex-grow">
-                                <div className="flex items-center justify-center">
-                                  <GraduationCap className="w-4 h-4 mr-2 text-muted-foreground" />
-                                  <span>{user.branch}, {user.batch}</span>
+                      {groupUsers.map((user) => {
+                        const userId = user.id?._id || user._id
+                        const userName = user.name || (user.id && user.id.name) || "Unknown"
+                        const userInitials = userName.split(" ").map(n => n[0]).join("")
+                        const userBatch = user.batch || "N/A"
+                        const userBranch = user.branch || "N/A"
+                        const userJobTitle = user.jobTitle || "Position not specified"
+                        const userLocation = user.location || user.companyName || "Location not specified"
+                        const isProcessing = processingConnection === userId
+                        
+                        return (
+                          <motion.div
+                            key={userId || Math.random().toString()}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            transition={{ duration: 0.3 }}
+                          >
+                            <Card className="overflow-hidden hover:shadow-2xl transition-shadow duration-300 h-full flex flex-col">
+                              <CardHeader className="p-0">
+                                <div className="h-24 bg-gradient-to-r from-[#A51C30] to-[#D43F56]"></div>
+                              </CardHeader>
+                              <CardContent className="pt-0 pb-6 px-6 flex-grow flex flex-col">
+                                <div className="flex justify-center -mt-12 mb-4">
+                                  <Avatar className="w-24 h-24 border-4 border-white shadow-lg">
+                                    <AvatarImage src={user.profileImage} alt={userName} />
+                                    <AvatarFallback>{userInitials}</AvatarFallback>
+                                  </Avatar>
                                 </div>
-                                <div className="flex items-center justify-center">
-                                  <MapPin className="w-4 h-4 mr-2 text-muted-foreground" />
-                                  <span>{user.location || "Location not specified"}</span>
-                                </div>
-                              </div>
-                              <div className="mt-6 flex justify-center space-x-4">
-                                <Button variant="outline" size="sm" className="w-full" onClick={() => router.push(`/profile/${user._id}`)}>
-                                  <User className="w-4 h-4 mr-2" />
-                                  View Profile
-                                </Button>
-                                <Button
-                                  disabled={user.isConnected || user.isCurrentUser}
-                                  variant={user.isConnected ? "secondary" : "default"}
-                                  size="sm"
-                                  onClick={() => handleConnect(user._id)}
-                                  className={`w-full ${user.isConnected ? "bg-green-500 hover:bg-green-600 text-white" : ""}`}
-                                >
-                                  {user.isConnected ? (
-                                    <>
-                                      <UserCheck className="w-4 h-4 mr-2" />
-                                      Connected
-                                    </>
+                                <div className="flex flex-row items-center justify-center">
+                                  <h3>{userName}</h3>
+                                  {user.isVerified ? (
+                                    <ShieldCheck className="w-4 h-4 ml-2 font-bold" />
                                   ) : (
-                                    <>
-                                      <UserPlus className="w-4 h-4 mr-2" />
-                                      Connect
-                                    </>
+                                    <ShieldOff className="w-4 h-4 ml-2 text-red-500" />
                                   )}
-                                </Button>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        </motion.div>
-                      ))}
+                                  {user.isCurrentUser && <p className="text-sm text-muted-foreground">(You)</p>}
+                                </div>
+                                <p className="text-sm text-muted-foreground text-center mb-4">{userJobTitle}</p>
+                                <div className="space-y-2 text-sm flex-grow">
+                                  <div className="flex items-center justify-center">
+                                    <GraduationCap className="w-4 h-4 mr-2 text-muted-foreground" />
+                                    <span>{userBranch}, {userBatch}</span>
+                                  </div>
+                                  <div className="flex items-center justify-center">
+                                    <MapPin className="w-4 h-4 mr-2 text-muted-foreground" />
+                                    <span>{userLocation}</span>
+                                  </div>
+                                </div>
+                                <div className="mt-6 flex justify-center space-x-4">
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    className="w-full" 
+                                    onClick={() => handleViewProfile(user)}
+                                  >
+                                    <User className="w-4 h-4 mr-2" />
+                                    View Profile
+                                  </Button>
+                                  <Button
+                                    disabled={user.isConnected || user.isCurrentUser || isProcessing}
+                                    variant={user.isConnected ? "secondary" : "default"}
+                                    size="sm"
+                                    onClick={() => handleConnect(user)}
+                                    className={`w-full ${user.isConnected ? "bg-green-500 hover:bg-green-600 text-white" : ""}`}
+                                  >
+                                    {isProcessing ? (
+                                      "Processing..."
+                                    ) : user.isConnected ? (
+                                      <>
+                                        <UserCheck className="w-4 h-4 mr-2" />
+                                        Connected
+                                      </>
+                                    ) : (
+                                      <>
+                                        <UserPlus className="w-4 h-4 mr-2" />
+                                        Connect
+                                      </>
+                                    )}
+                                  </Button>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          </motion.div>
+                        )
+                      })}
                     </motion.div>
                   </motion.div>
                 ))}
