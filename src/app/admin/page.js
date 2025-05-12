@@ -86,7 +86,7 @@ export default function AdminDashboard() {
       id: 1,
       name: "Department of Computer Science",
       plan: "Premium",
-      students: 5000,
+      students: 500,
       alumni: 20000,
       status: "Approved",
       remainingTime: "11 months",
@@ -96,7 +96,7 @@ export default function AdminDashboard() {
       id: 2,
       name: "Department of Clothing",
       plan: "Medium",
-      students: 2000,
+      students: 200,
       alumni: 8000,
       status: "Approved",
       remainingTime: "5 months",
@@ -106,7 +106,7 @@ export default function AdminDashboard() {
       id: 3,
       name: "Department of Texile Technology",
       plan: "Free",
-      students: 1000,
+      students: 100,
       alumni: 3000,
       status: "Pending",
       remainingTime: "N/A",
@@ -114,9 +114,9 @@ export default function AdminDashboard() {
     },
     {
       id: 4,
-      name: "BBA",
+      name: "Faisalabad Business School",
       plan: "Premium",
-      students: 3000,
+      students: 300,
       alumni: 15000,
       status: "Approved",
       remainingTime: "8 months",
@@ -124,7 +124,47 @@ export default function AdminDashboard() {
     },
     {
       id: 5,
-      name: "Applied Sciences",
+      name: "Department of Applied Sciences",
+      plan: "Medium",
+      students: 400,
+      alumni: 0,
+      status: "Pending",
+      remainingTime: "N/A",
+      revenue: 0,
+    },
+    {
+      id: 6,
+      name: "Department of Textile Engineering",
+      plan: "Medium",
+      students: 400,
+      alumni: 1800,
+      status: "Pending",
+      remainingTime: "N/A",
+      revenue: 0,
+    },
+    {
+      id: 7,
+      name: "Department of Polymer Engineering",
+      plan: "Medium",
+      students: 400,
+      alumni: 18000,
+      status: "Pending",
+      remainingTime: "N/A",
+      revenue: 0,
+    },
+    {
+      id: 8,
+      name: "Department of Materials",
+      plan: "Medium",
+      students: 400,
+      alumni: 180,
+      status: "Pending",
+      remainingTime: "N/A",
+      revenue: 0,
+    },
+    {
+      id: 9,
+      name: "Department of Art & Design",
       plan: "Medium",
       students: 4000,
       alumni: 18000,
@@ -136,7 +176,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     const auth = isAuthenticated();
-    if (auth || user.role !== "admin") {
+    if (!auth || user.role !== "admin") {
       console.log("User not authenticated, redirecting to login");
       router.replace("/login");
       return;
@@ -350,7 +390,7 @@ export default function AdminDashboard() {
                             </TableRow>
                           </TableHeader>
                           <TableBody>
-                            {registerdColleges?.map((college) => (
+                            {colleges?.map((college) => (
                               <TableRow key={college.id}>
                                 <TableCell className="font-medium">
                                   {college.name}
