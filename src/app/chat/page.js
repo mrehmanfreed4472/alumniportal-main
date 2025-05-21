@@ -22,7 +22,7 @@ import {
   sendMessage
 } from '@/features/chat/chatSlice';
 
-// New action to fetch user chats
+// Actions for chat functionality
 const fetchUserChats = (userId) => {
   return async (dispatch) => {
     dispatch({ type: 'chat/fetchUserChatsStart' });
@@ -31,25 +31,18 @@ const fetchUserChats = (userId) => {
       const data = await response.json();
       
       if (data.success) {
-        dispatch({ 
-          type: 'chat/fetchUserChatsSuccess', 
-          payload: data.chats 
-        });
+        dispatch({ type: 'chat/fetchUserChatsSuccess', payload: data.chats });
         return data.chats;
       } else {
         throw new Error(data.message || 'Failed to fetch user chats');
       }
     } catch (error) {
-      dispatch({ 
-        type: 'chat/fetchUserChatsFailure', 
-        payload: error.message 
-      });
+      dispatch({ type: 'chat/fetchUserChatsFailure', payload: error.message });
       return [];
     }
   };
 };
 
-// New action to fetch user groups
 const fetchUserGroups = (userId) => {
   return async (dispatch) => {
     dispatch({ type: 'chat/fetchUserGroupsStart' });
@@ -58,55 +51,39 @@ const fetchUserGroups = (userId) => {
       const data = await response.json();
       
       if (data.success) {
-        dispatch({ 
-          type: 'chat/fetchUserGroupsSuccess', 
-          payload: data.groups 
-        });
+        dispatch({ type: 'chat/fetchUserGroupsSuccess', payload: data.groups });
         return data.groups;
       } else {
         throw new Error(data.message || 'Failed to fetch user groups');
       }
     } catch (error) {
-      dispatch({ 
-        type: 'chat/fetchUserGroupsFailure', 
-        payload: error.message 
-      });
+      dispatch({ type: 'chat/fetchUserGroupsFailure', payload: error.message });
       return [];
     }
   };
 };
 
-// New action to join public group
 const joinPublicGroup = (data) => {
   return async (dispatch) => {
     dispatch({ type: 'chat/joinPublicGroupStart' });
     try {
       const response = await fetch('/api/chat/join-group', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
       
       const result = await response.json();
       
       if (result.success) {
-        dispatch({ 
-          type: 'chat/joinPublicGroupSuccess', 
-          payload: result 
-        });
+        dispatch({ type: 'chat/joinPublicGroupSuccess', payload: result });
       } else {
         throw new Error(result.message || 'Failed to join group');
       }
       
       return result;
     } catch (error) {
-      dispatch({ 
-        type: 'chat/joinPublicGroupFailure', 
-        payload: error.message 
-      });
-      
+      dispatch({ type: 'chat/joinPublicGroupFailure', payload: error.message });
       return { success: false, error: error.message };
     }
   };
@@ -115,64 +92,43 @@ const joinPublicGroup = (data) => {
 function ChatView({ chat, onBack }) {
   const [newMessage, setNewMessage] = useState('');
   const messagesEndRef = useRef(null);
-  const router = useRouter();
   const dispatch = useDispatch();
-  const { messages: allMessages, loadingMessages } = useSelector((state) => state.chat);
-  
-  // Get current user from localStorage
+  const { messages, loadingMessages } = useSelector((state) => state.chat);
   const currentUser = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user')) : null;
+  const intervalRef = useRef(null);
 
   useEffect(() => {
-    if (!isAuthenticated()) {
-      console.log("User not authenticated, redirecting to login");
-      router.replace("/login");
-      return;
-    }
-    
-    // Fetch messages for the current chat
     if (chat?.channelId) {
       dispatch(fetchMessages(chat.channelId));
-      console.log("Fetching messages for channel:", chat.channelId);
-    }
-
-    // Set up a polling mechanism to fetch messages every 3 seconds
-    const messageInterval = setInterval(() => {
-      if (chat?.channelId) {
+      
+      // Set up polling interval only once
+      intervalRef.current = setInterval(() => {
         dispatch(fetchMessages(chat.channelId));
+      }, 3000);
+    }
+    
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
       }
-    }, 3000);
+    };
+  }, [chat, dispatch]);
 
-    // Clear interval on cleanup
-    return () => clearInterval(messageInterval);
-  }, [router, chat, dispatch]);
-
-  // Extract messages for this specific chat - improved to handle all possible message formats
+  // Get messages for the current channel
   const getMessagesForChannel = () => {
-    if (!allMessages) return [];
+    if (!messages) return [];
     
-    // Check if messages are in the nested structure from your console output
-    if (allMessages[chat?.channelId]?.messages && Array.isArray(allMessages[chat?.channelId].messages)) {
-      return allMessages[chat?.channelId].messages;
+    // Handle different message formats
+    if (messages[chat?.channelId]?.messages && Array.isArray(messages[chat?.channelId].messages)) {
+      return messages[chat?.channelId].messages;
     }
     
-    // Check if message object is nested one level deeper
-    if (allMessages[chat?.channelId]?.[0]?.message?.message) {
-      return [allMessages[chat?.channelId][0].message.message];
+    if (Array.isArray(messages)) {
+      return messages;
     }
     
-    // Check if messages are in the data property
-    if (allMessages.data && Array.isArray(allMessages.data)) {
-      return allMessages.data;
-    }
-    
-    // If we have a single message object
-    if (allMessages.message) {
-      return [allMessages.message];
-    }
-    
-    // If the allMessages is an array itself
-    if (Array.isArray(allMessages)) {
-      return allMessages;
+    if (messages.data && Array.isArray(messages.data)) {
+      return messages.data;
     }
     
     return [];
@@ -180,70 +136,40 @@ function ChatView({ chat, onBack }) {
 
   const displayMessages = getMessagesForChannel();
 
-  // Log messages when they change for debugging
   useEffect(() => {
-    if (chat?.channelId && allMessages) {
-      console.log("Messages for channel:", chat.channelId, allMessages);
-    }
-  }, [allMessages, chat]);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'auto', block: 'end' });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
+    messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
   }, [displayMessages]);
 
   const handleSendMessage = (e) => {
     e.preventDefault();
-    if (newMessage.trim() !== '') {
-      // Send message using the API
+    if (newMessage.trim() !== '' && currentUser?._id && chat?.channelId) {
+      // Send message to API
       dispatch(sendMessage({
-        userId: currentUser?._id,
+        userId: currentUser._id,
         channelId: chat.channelId,
         text: newMessage
       }));
       
-      // Optimistically add message to UI
-      const optimisticMessage = {
-        _id: `temp-${Date.now()}`,
-        text: newMessage,
-        userId: currentUser?._id,
-        sender: 'You',
-        createdAt: new Date().toISOString()
-      };
-      
-      // Update lastMessage for the chat
-      if (chat && currentUser) {
-        dispatch({
-          type: 'chat/updateLastMessage',
-          payload: {
-            channelId: chat.channelId,
-            lastMessage: newMessage,
-            lastMessageTime: new Date().toISOString()
-          }
-        });
-      }
+      // Update last message for the chat
+      dispatch({
+        type: 'chat/updateLastMessage',
+        payload: {
+          channelId: chat.channelId,
+          lastMessage: newMessage,
+          lastMessageTime: new Date().toISOString()
+        }
+      });
       
       setNewMessage('');
     }
   };
 
-  // Format message for display
+  // Format message consistently
   const formatMessage = (message) => {
-    // Check if message is nested in a 'message' property
-    if (message.message && typeof message.message === 'object') {
-      return message.message;
-    }
-    
-    // Check if text is in 'text' or 'message' property
     const messageText = message.text || message.message || '';
+    const userId = message.userId || message.sender || '';
     
-    return {
-      ...message,
-      text: messageText
-    };
+    return { ...message, text: messageText, userId };
   };
 
   return (
@@ -254,7 +180,7 @@ function ChatView({ chat, onBack }) {
         </Button>
         <Avatar>
           <AvatarImage src={chat?.avatar} alt={chat.name} />
-          <AvatarFallback className="text-black">{chat.name[0].toUpperCase()}</AvatarFallback>
+          <AvatarFallback className="text-black">{chat.name[0]?.toUpperCase() || 'C'}</AvatarFallback>
         </Avatar>
         <div>
           <h2 className="text-xl font-semibold">{chat.name}</h2>
@@ -269,30 +195,27 @@ function ChatView({ chat, onBack }) {
           <div className="space-y-4">
             {displayMessages && displayMessages.length > 0 ? (
               displayMessages.map((rawMessage, index) => {
-                // Format the message
                 const message = formatMessage(rawMessage);
+                const isCurrentUser = 
+                  message.userId === currentUser?._id || 
+                  message.sender === 'You' || 
+                  message.sender === currentUser?._id;
                 
                 return (
                   <div
                     key={message._id || `msg-${index}`}
-                    className={`flex ${
-                      message.userId === currentUser?._id || message.sender === 'You' || message.sender === currentUser?._id
-                        ? 'justify-end' 
-                        : 'justify-start'
-                    } mb-2`}
+                    className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'} mb-2`}
                   >
                     <div
                       className={`max-w-64 md:max-w-lg p-2 break-words whitespace-normal rounded-lg ${
-                        message.userId === currentUser?._id || message.sender === 'You' || message.sender === currentUser?._id
-                          ? 'bg-blue-500 text-white' 
-                          : 'bg-gray-100'
+                        isCurrentUser ? 'bg-blue-500 text-white' : 'bg-gray-100'
                       }`}
                     >
-                      <p className="break-words whitespace-normal text-base">{message.text || message.message}</p>
+                      <p className="break-words whitespace-normal text-base">{message.text}</p>
                       <p className="text-xs font-light flex justify-end">
-                        {message.createdAt || message.timestamp
-                          ? new Date(message.createdAt || message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                          : message.time || 'now'}
+                        {message.createdAt 
+                          ? new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                          : 'now'}
                       </p>
                     </div>
                   </div>
@@ -328,16 +251,16 @@ function UserList({ onSelectUser }) {
   const dispatch = useDispatch();
   const { users, loadingUsers } = useSelector(state => state.chat);
   const [searchTerm, setSearchTerm] = useState('');
-  const hasFetched = useRef(false); // Add ref to track if fetch happened
+  const hasFetched = useRef(false);
 
   useEffect(() => {
-    if (!hasFetched.current) { // Only fetch once
+    if (!hasFetched.current) {
       dispatch(fetchAllUsers());
       hasFetched.current = true;
     }
   }, [dispatch]);
 
-  // Handle different user object structures
+  // Handle different user object structures consistently
   const filteredUsers = users && Array.isArray(users) ? users.filter(user => {
     const userName = user.name || (user.id && user.id.name) || '';
     return userName.toLowerCase().includes(searchTerm.toLowerCase());
@@ -364,8 +287,7 @@ function UserList({ onSelectUser }) {
             <p>Loading...</p>
           </div>
         ) : filteredUsers.length > 0 ? (
-          filteredUsers?.map(user => {
-            // Handle different user object structures
+          filteredUsers.map(user => {
             const userId = user._id || (user.id && user.id._id) || '';
             const userName = user.name || (user.id && user.id.name) || 'Unknown';
             const userBatch = user.batch || (user.id && user.id.batch) || '';
@@ -399,26 +321,19 @@ function UserList({ onSelectUser }) {
   );
 }
 
-function CreateGroupDialog({ open, onOpenChange }) {
+function CreateGroupDialog({ onOpenChange }) {
   const [groupName, setGroupName] = useState('');
   const dispatch = useDispatch();
-  const router = useRouter();
-  
-  // Get current user from localStorage
   const currentUser = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user')) : null;
   
   const handleCreateGroup = () => {
-    if (groupName.trim()) {
+    if (groupName.trim() && currentUser?._id) {
       dispatch(createGroupChat({ 
-        creatorId: currentUser?._id, 
+        creatorId: currentUser._id, 
         groupName 
       })).then((result) => {
-        // Check if group was created successfully and refresh groups list
         if (result.payload?.data) {
-          // Force refresh of groups list
-          if (currentUser?._id) {
-            dispatch(fetchUserGroups(currentUser._id));
-          }
+          dispatch(fetchUserGroups(currentUser._id));
         }
       });
       setGroupName('');
@@ -445,22 +360,18 @@ function CreateGroupDialog({ open, onOpenChange }) {
   );
 }
 
-function JoinGroupDialog({ open, onOpenChange }) {
+function JoinGroupDialog({ onOpenChange }) {
   const [groupCode, setGroupCode] = useState('');
   const dispatch = useDispatch();
-  
-  // Get current user from localStorage
   const currentUser = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user')) : null;
   
   const handleJoinGroup = () => {
     if (groupCode.trim() && currentUser?._id) {
-      // Implement your join group logic here
       dispatch(joinPublicGroup({ 
         userId: currentUser._id, 
         groupCode 
       })).then((result) => {
         if (result.payload?.success) {
-          // Refresh groups list after joining
           dispatch(fetchUserGroups(currentUser._id));
         }
       });
@@ -498,102 +409,86 @@ export default function WhatsAppClone() {
   
   const dispatch = useDispatch();
   const router = useRouter();
-  const { 
-    chats, 
-    groups, 
-    loading, 
-    token,
-    messages 
-  } = useSelector(state => state.chat);
-  
-  // Get current user from localStorage
+  const { chats, groups, loading } = useSelector(state => state.chat);
   const currentUser = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user')) : null;
-
-  // For debugging
-  useEffect(() => {
-    console.log("Current chats:", chats);
-    console.log("Current groups:", groups);
-  }, [chats, groups]);
+  const pollIntervalRef = useRef(null);
 
   useEffect(() => {
     if (!isAuthenticated()) {
-      console.log("User not authenticated, redirecting to login");
       router.replace("/login");
       return;
     }
 
-    // Get Stream chat token for current user
-    if (currentUser && currentUser._id) {
+    if (currentUser?._id) {
+      // Initial data fetch
       dispatch(fetchChatToken({ userId: currentUser._id }));
-      
-      // Fetch user chats and groups
       dispatch(fetchUserChats(currentUser._id));
       dispatch(fetchUserGroups(currentUser._id));
       
-      console.log("Fetching data for user:", currentUser._id);
-    }
-    
-    // Set up polling for chats and groups every 5 seconds
-    const chatInterval = setInterval(() => {
-      if (currentUser && currentUser._id) {
+      // Set up polling with a single interval
+      pollIntervalRef.current = setInterval(() => {
         dispatch(fetchUserChats(currentUser._id));
         dispatch(fetchUserGroups(currentUser._id));
-      }
-    }, 5000);
+      }, 5000);
+    }
     
-    return () => clearInterval(chatInterval);
+    return () => {
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+      }
+    };
   }, [router, dispatch]);
 
   const handleChatClick = (chat) => {
-    setSelectedChat(chat);
+    // Process chat data consistently for display
+    const processedChat = {
+      ...chat,
+      channelId: chat.channelId || chat._id,
+      name: chat.name || "Chat",
+      avatar: chat.avatar || chat.profileImage
+    };
     
-    // Fetch messages for the selected chat
-    if (chat?.channelId) {
-      dispatch(fetchMessages(chat.channelId));
+    setSelectedChat(processedChat);
+    
+    if (processedChat.channelId) {
+      dispatch(fetchMessages(processedChat.channelId));
     }
   };
 
-  const handleBackClick = () => {
-    setSelectedChat(null);
-  };
-
   const handleSelectUser = (user) => {
-    // Handle different user object structures
     const userId = user._id || (user.id && user.id._id);
     const userName = user.name || (user.id && user.id.name) || 'Unknown';
     const userAvatar = user.profileImage || (user.id && user.id.profileImage) || '';
     
-    if (currentUser && userId && userId !== currentUser._id) {
-      // Check if a chat already exists with this user
+    if (currentUser?._id && userId && userId !== currentUser._id) {
+      // Find existing chat
       const existingChat = chatsList.find(chat => 
         chat.participants && 
-        chat.participants.some(participant => participant._id === userId)
+        chat.participants.some(participant => 
+          participant._id === userId || participant === userId
+        )
       );
       
       if (existingChat) {
-        // If chat exists, select it
-        setSelectedChat(existingChat);
+        handleChatClick(existingChat);
         setNewChatDialog(false);
       } else {
-        // Create new chat if it doesn't exist
+        // Create new chat
         dispatch(createPrivateChat({
           senderId: currentUser._id,
           receiverId: userId
         })).then((result) => {
           if (result.payload?.data) {
-            // Create a chat object
-            const chatData = {
+            const newChat = {
+              _id: result.payload.data._id || result.payload.data.channelId,
               channelId: result.payload.data.channelId,
               name: userName,
-              _id: userId,
               avatar: userAvatar,
-              messages: []
+              participants: [{ _id: userId }, { _id: currentUser._id }]
             };
             
-            setSelectedChat(chatData);
+            handleChatClick(newChat);
             setNewChatDialog(false);
-            
-            // Refresh chats list
             dispatch(fetchUserChats(currentUser._id));
           }
         });
@@ -601,21 +496,24 @@ export default function WhatsAppClone() {
     }
   };
 
-  // Make sure chats and groups are arrays before filtering
+  // Ensure consistent data structure
   const chatsList = Array.isArray(chats) ? chats : [];
   const groupsList = Array.isArray(groups) ? groups : [];
 
-  // Process chats to ensure they have proper name and avatar
+  // Process chats to ensure proper names and avatars
   const processedChats = chatsList.map(chat => {
-    // If chat doesn't have a name, try to find it from participants
     let chatName = chat.name;
     let chatAvatar = chat.avatar || chat.profileImage;
     
     if (!chatName && chat.participants && Array.isArray(chat.participants)) {
-      const otherParticipant = chat.participants.find(p => p._id !== currentUser?._id);
+      const otherParticipant = chat.participants.find(p => {
+        const participantId = p._id || p;
+        return participantId !== currentUser?._id;
+      });
+      
       if (otherParticipant) {
-        chatName = otherParticipant.name;
-        chatAvatar = otherParticipant.profileImage;
+        chatName = otherParticipant.name || "Chat";
+        chatAvatar = otherParticipant.profileImage || otherParticipant.avatar;
       }
     }
     
@@ -662,7 +560,7 @@ export default function WhatsAppClone() {
                     <span className="sr-only">New Group</span>
                   </Button>
                 </DialogTrigger>
-                <CreateGroupDialog open={newGroupDialog} onOpenChange={setNewGroupDialog} />
+                <CreateGroupDialog onOpenChange={setNewGroupDialog} />
               </Dialog>
             </div>
           </div>
@@ -698,7 +596,7 @@ export default function WhatsAppClone() {
                     <p>Loading...</p>
                   </div>
                 ) : filteredChats.length > 0 ? (
-                  filteredChats?.map((chat) => (
+                  filteredChats.map((chat) => (
                     <div
                       key={chat._id || chat.channelId}
                       className={`flex items-center space-x-4 p-4 ${
@@ -709,7 +607,7 @@ export default function WhatsAppClone() {
                     >
                       <Avatar>
                         <AvatarImage src={chat?.profileImage || chat?.avatar} alt={chat?.name} />
-                        <AvatarFallback>{chat?.name && chat?.name[0] ? chat?.name[0].toUpperCase() : 'U'}</AvatarFallback>
+                        <AvatarFallback>{chat?.name?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
                       </Avatar>
                       <div className="flex-grow">
                         <h3 className="font-semibold">{chat?.name}</h3>
@@ -742,7 +640,7 @@ export default function WhatsAppClone() {
                       Join Public Group
                     </Button>
                   </DialogTrigger>
-                  <JoinGroupDialog open={joinGroupDialog} onOpenChange={setJoinGroupDialog} />
+                  <JoinGroupDialog onOpenChange={setJoinGroupDialog} />
                 </Dialog>
               </div>
               <ScrollArea className="h-[calc(92vh-230px)] md:pb-10 pb-20">
@@ -751,7 +649,7 @@ export default function WhatsAppClone() {
                     <p>Loading...</p>
                   </div>
                 ) : filteredGroups.length > 0 ? (
-                  filteredGroups?.map((group) => (
+                  filteredGroups.map((group) => (
                     <div
                       key={group._id || group.channelId}
                       className={`flex items-center space-x-4 p-4 ${
@@ -762,7 +660,7 @@ export default function WhatsAppClone() {
                     >
                       <Avatar>
                         <AvatarImage src={group.profileImage || group.avatar} alt={group.name} />
-                        <AvatarFallback>{group.name && group.name[0] ? group.name[0].toUpperCase() : 'G'}</AvatarFallback>
+                        <AvatarFallback>{group.name?.[0]?.toUpperCase() || 'G'}</AvatarFallback>
                       </Avatar>
                       <div className="flex-grow">
                         <h3 className="font-semibold">{group.name}</h3>
@@ -792,7 +690,7 @@ export default function WhatsAppClone() {
         {/* Chat view */}
         <div className="hidden md:block flex-grow">
           {selectedChat ? (
-            <ChatView chat={selectedChat} onBack={handleBackClick} />
+            <ChatView chat={selectedChat} onBack={() => setSelectedChat(null)} />
           ) : (
             <div className="h-full flex items-center justify-center text-muted-foreground">
               Select a chat to start messaging
@@ -801,7 +699,7 @@ export default function WhatsAppClone() {
         </div>
         {selectedChat && (
           <div className="fixed inset-0 bg-background md:hidden">
-            <ChatView chat={selectedChat} onBack={handleBackClick} />
+            <ChatView chat={selectedChat} onBack={() => setSelectedChat(null)} />
           </div>
         )}
       </div>
