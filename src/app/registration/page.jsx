@@ -137,11 +137,11 @@ export default function SignupForm() {
               </div>
 
               <div>
-                <Label htmlFor="collegeName">College Name</Label>
+                <Label htmlFor="collegeName">Department</Label>
                 <Input
                   id="collegeName"
                   type="text"
-                  placeholder="Enter your college name"
+                  placeholder="Enter your Department name"
                   value={inputs.collegeName}
                   onChange={(e) => setInputs({ ...inputs, collegeName: e.target.value })}
                 />
