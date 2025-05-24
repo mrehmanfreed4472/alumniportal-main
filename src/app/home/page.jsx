@@ -190,7 +190,7 @@ A walk down memory lane awaits as we honour their incredible journey and achieve
               <InvolvementCard
                 icon={<GraduationCap className="h-10 w-10 text-[#A51C30]" />}
                 title={ user?.role === "alumni" ? ("Contribute to Scholarships") : ("Get Scholarships from Alumni")}
-                description={ user?.role === "alumni" ? ("Help deserving students achieve their dreams by contributing to our scholarship fund.") : ("Recive scholarships from alumni to enhance your education, and unloak future career opportunities")}
+                description={ user?.role === "alumni" ? ("Help deserving students achieve their dreams by contributing to our scholarship fund.") : ("Recive scholarships from alumni to enhance your education, and unlock future career opportunities")}
               />
               <InvolvementCard
                 icon={<Calendar className="h-10 w-10 text-[#A51C30]" />}
