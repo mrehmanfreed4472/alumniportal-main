@@ -9,7 +9,7 @@ const nextConfig = {
     ];
   },
   images: {
-    domains: ['images.unsplash.com', 'www.google.com','localhost'], // Add allowed external domains here
+    domains: ['images.unsplash.com', 'www.google.com','localhost','res.cloudinary.com'], // Add allowed external domains here
   },
 };
 
